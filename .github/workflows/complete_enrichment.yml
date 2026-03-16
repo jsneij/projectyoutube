@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       confirm:
-        description: 'Type ENRICH to confirm (uses ~60 min of GitHub Actions quota)'
+        description: 'Type COMPLETE-ENRICH to confirm (uses ~60 min of GitHub Actions quota)'
         required: true
 
 permissions:
@@ -18,8 +18,8 @@ jobs:
     steps:
       - name: Confirm intent
         run: |
-          if [ "${{ github.event.inputs.confirm }}" != "ENRICH" ]; then
-            echo "ERROR: Type ENRICH to confirm. Aborting."
+          if [ "${{ github.event.inputs.confirm }}" != "COMPLETE-ENRICH" ]; then
+            echo "ERROR: Type COMPLETE-ENRICH to confirm. Aborting."
             exit 1
           fi
 
