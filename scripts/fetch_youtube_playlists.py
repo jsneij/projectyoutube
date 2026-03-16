@@ -88,6 +88,31 @@ RESET  = "\033[0m"
 
 # ── yt-dlp runner ─────────────────────────────────────────────────────────────
 
+def _run_debug(args: list[str], timeout: int = 90) -> list[dict]:
+    """Like _run but prints stderr for debugging."""
+    if COOKIES_FILE:
+        cookie_args = ["--cookies", COOKIES_FILE]
+    else:
+        cookie_args = ["--cookies-from-browser", BROWSER]
+    cmd = [YTDLP] + cookie_args + ["--no-warnings", "--ignore-errors"] + args
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        if r.stderr.strip():
+            print(f"    [debug stderr] {r.stderr.strip()[:300]}", flush=True)
+        if not r.stdout.strip():
+            print(f"    [debug] no stdout from yt-dlp", flush=True)
+        results = [json.loads(l) for l in r.stdout.splitlines()
+                   if l.strip().startswith("{")]
+        print(f"    [debug] parsed {len(results)} entries", flush=True)
+        return results
+    except subprocess.TimeoutExpired:
+        print(f"    [debug] yt-dlp timed out ({timeout}s)", flush=True)
+        return []
+    except Exception as e:
+        print(f"    [debug] yt-dlp error: {e}", flush=True)
+        return []
+
+
 def _run(args: list[str], timeout: int = 90) -> list[dict]:
     if COOKIES_FILE:
         cookie_args = ["--cookies", COOKIES_FILE]
@@ -159,7 +184,7 @@ def enrich_videos_by_url(video_ids: list[str]) -> dict[str, dict]:
     result: dict[str, dict] = {}
     for vid_id in video_ids:
         url = f"https://www.youtube.com/watch?v={vid_id}"
-        entries = _run(["--dump-json", url], timeout=ENRICH_TIMEOUT)
+        entries = _run_debug(["--dump-json", url], timeout=ENRICH_TIMEOUT)
         for e in entries:
             eid = e.get("id") or e.get("video_id") or ""
             if eid:
