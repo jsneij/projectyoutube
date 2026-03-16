@@ -1,0 +1,416 @@
+{
+  "run_at": "2026-03-15T21:06:50.876312+00:00",
+  "is_first_run": false,
+  "enrich_mode": true,
+  "playlists_new": [],
+  "playlists_deleted": [],
+  "playlists_updated": [
+    {
+      "playlist_id": "PLTFCM8gfGxuGSKCOxzFTg8TMhn1b7CeML",
+      "title": "Entrepreneur Motivation & Success Motivational Videos",
+      "emptied": true
+    },
+    {
+      "playlist_id": "PLui6Eyny-Uzzl1q-GskVUZp6Fk8nIr9rK",
+      "title": "REVOLUTION: 31 Days of Yoga",
+      "emptied": true
+    }
+  ],
+  "playlists_unchanged": [
+    {
+      "playlist_id": "PLiWBEZWrNsNhBZhoERiuS9wFPtQIY8sxk",
+      "title": "No-Code"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNhldUIQEFlfFpGXz4DQYDA0",
+      "title": "Shorts"
+    },
+    {
+      "playlist_id": "PLl3Hr9RYX6gPSyj7-_cRTcMi06DqZW9xh",
+      "title": "(almost) every music video of Michel Gondry"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1",
+      "title": "AI Claude"
+    },
+    {
+      "playlist_id": "WL",
+      "title": "Watch later"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNhwSgTjx3tNwPhSX45PXwRK",
+      "title": "Islam"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNhp3T5tIRURbyXn4a1G6HK1",
+      "title": "AI"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNhIb4QTnXtzztWbTU8WVOXZ",
+      "title": "Games"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNhT-9IX1K2afjZEXXcbanpH",
+      "title": "Games Playthrough"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNj7oDj15vwn8A98CMZpybdU",
+      "title": "Game Theory"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNgWsYmI3uYqjxTkqe3B1NZx",
+      "title": "Health"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNi-uipzseTXOAFfS3en2TxD",
+      "title": "Health"
+    },
+    {
+      "playlist_id": "LL",
+      "title": "Liked videos"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNjYkMe9eaaMmYSSzb6WJVEx",
+      "title": "Camping"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNj8dQwp2HKw0tZ_RynjFHsq",
+      "title": "Philosophy"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNiynofCprMQEdB1Fa_jzMwE",
+      "title": "AI for work"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNgtNl3M_AqfqYoarcNXMduJ",
+      "title": "Audiobooks"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNjw7Tz-2jx7ztSIpmpftw5z",
+      "title": "Arab Music"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNgXzg2Wy6TwwBtBeInIS4qx",
+      "title": "Motos"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNg7jboh09RSPQUBT7hhRBYk",
+      "title": "ROLE GAMING"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNhNidAmkNGTvwO2qiKsO-mQ",
+      "title": "Cinema"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNgnHT7CsFEtfmEKHsos_iYg",
+      "title": "Design"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNi2sNDXQM3yFpeZ_Y1te9mv",
+      "title": "Music Videos"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNhVkNxmWhMefMXzMQfvvjvb",
+      "title": "Jira"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNidOpdNQyxS5JG6FhypI_qE",
+      "title": "Mecánica"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNjrfRDGfXdbwn9CjEGfYD_2",
+      "title": "Arkham"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNihHXddPQ3Ln81keQb9sMh0",
+      "title": "Governance"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNjgOb9R2F2mgJC2oDJZeGD_",
+      "title": "RetroGames"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNguc9QzcobCRR9JbfUNJ7Wu",
+      "title": "Himalayan"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNgy5MGvkk-rbn197wJuoh9u",
+      "title": "Philosophy"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNgp_Nz-ramstLJgtpzOg5fC",
+      "title": "DESIGNOPS"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNjvnfu0bCAJBLfpKOKuz885",
+      "title": "Home"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNjZIJRPAo7OjGQYypxqUukI",
+      "title": "Scrapping"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNjARy-gSTEXcsPoa7Xk0fWb",
+      "title": "Climbing"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNgJ6G-5dM8dEJ0FUlre80WN",
+      "title": "Finance"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNgftyN-7lqnGpp0pOB1FB8A",
+      "title": "Syria"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNg9cQsyNx342sBCDJH_0I0v",
+      "title": "Work Dow Jones"
+    },
+    {
+      "playlist_id": "PLcngqr0KWjFJNpP9x04PhCEHsAJThMLlH",
+      "title": "Float Video Guides"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNhd7NJRLjQX7RAdNd2_OIaK",
+      "title": "Storytelling"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNgINwtC89QEBghJ2LYQE52b",
+      "title": "About Music"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNjlpBI4GLSBYbDno1-DDxWJ",
+      "title": "Learning 4 JOBS"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNie_DUcV0VA-yqNiAxLIENt",
+      "title": "New work"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNgTyqPR3MobOgE4jesubVE4",
+      "title": "Data Science"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNg9UHi1gKWfC7xcU3LahyA3",
+      "title": "Food"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNgegeVcZTPecSABk_8_swTe",
+      "title": "CarShorts"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNi_dUond2w2i8Au9DiNAWja",
+      "title": "Zizek"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNhbQ4vWkM51i6Jy30YN0QyE",
+      "title": "Tenet"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNhI8jAyRKQ7Pp--E2fSb80k",
+      "title": "Motivational"
+    },
+    {
+      "playlist_id": "PLJmFJXf3BXjx-HGqco2c1BXUQnRlYmkZQ",
+      "title": "How to Play Call of Cthulhu 7E (Tabletop RPG)"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNjspHQmHZ9dRi3U2ltzINDQ",
+      "title": "Great videos"
+    },
+    {
+      "playlist_id": "PLyv9UQz_xiMow-GGNQjWfAnbJQNTg6peO",
+      "title": "Supple Leopard Mobility Exercises"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNj25k2hKnlEVWOwSkzbYXSM",
+      "title": "Scuba Diving"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNg41dh12F_mtR5aX-A2N0tY",
+      "title": "Exercises"
+    },
+    {
+      "playlist_id": "PLXmf8-Jo8F-vUA9OpO6x_lHvQsLl3LI5t",
+      "title": "How To Win | ARKHAM HORROR: THE CARD GAME"
+    },
+    {
+      "playlist_id": "PLBS8yOLcZ_edW-0EcbD3fHnGK2kaFKJdI",
+      "title": "Arkham Horror: The Card Game"
+    },
+    {
+      "playlist_id": "PLDZBtgxhRpkylUVA3p8LsdyACtWHgAlfY",
+      "title": "Tutorial Arkham Horror LCG en Español"
+    },
+    {
+      "playlist_id": "PLDZBtgxhRpkyqXk8KCDApzG2_480qIdjm",
+      "title": "Arkham Horror LCG - Análisis de la Caja Básica"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNjblqVcHxbs1x3BkWecbkX6",
+      "title": "Movie clips"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNi7e3KkD3FWIwcT5PSKeOTg",
+      "title": "Mecánica Auto"
+    },
+    {
+      "playlist_id": "PLwyXYwu8kL0wg9R_VMeXy0JiK5_c70IrV",
+      "title": "AWS: Learn Amazon Web Services (AWS) with bite-size tutorials that are easy to understand"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNg0e4BCgdT6eXAy0IlUtMP7",
+      "title": "Computer science learning"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNiK8rSeJKqruobe5WXZh1S_",
+      "title": "Temp"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNg54wO7wCuwaiOlQqE2A1FE",
+      "title": "DIY Energy Food"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNiDLN2dRtQLUwOFe1Y_7BUo",
+      "title": "Relaxation"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNg9VfJhZb9PTZpjZ2ZGZpUL",
+      "title": "Ernesto Castro"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNi94eOvBL3BIDvS9IZZdriC",
+      "title": "Fun Wallapop"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNgXpk341zF66L8kH1l6IdE5",
+      "title": "Scent"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNjiujalsn4E3zzSIhHNoVTD",
+      "title": "Wallapop"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNg3ftU6-FWnmhq9D7XDcYEC",
+      "title": "Economy and Politics"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNhAdlcGGUSmQzWtemqnA_jp",
+      "title": "Hiking"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNjDOe4s3NBrFj27yJaQ5-76",
+      "title": "SHM"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNidfKIN5WsirtGAsqDbQsWv",
+      "title": "Dante's Inferno"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNh-koOaYdNl_ZjQvH2t6M-i",
+      "title": "Excel"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNgN0TVhrsMABKhYyZXtTBDw",
+      "title": "Tta"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNhALojcs5nMmIhVf4wVN_Ny",
+      "title": "Star Wars"
+    },
+    {
+      "playlist_id": "PLG89FYNj5VOM_vCuarmdZ0rYhyGnlQx5w",
+      "title": "Epistemic-responsibilities"
+    },
+    {
+      "playlist_id": "PLh41SE_J5fs_1-VLhji2LwButQHlv-6T8",
+      "title": "Epistemic Responsibility"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNhaZrh529MQW2AYCL5srlve",
+      "title": "Chaplin ES"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNhV9HoLW8fCiPV5LEz7mWak",
+      "title": "Green New Deal"
+    },
+    {
+      "playlist_id": "PLMrFM-P68Wh7o_LwfB8RxfnMMpPwFI83K",
+      "title": "THE A-Z OF ISMS"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNjq7DB2As0FX_U1kDDlsdOX",
+      "title": "Climate Emergency"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNgL17W3ifp7yltUA3Q_qiDo",
+      "title": "Notion"
+    },
+    {
+      "playlist_id": "PL0oKfTSlfZtfQIGeEJofPttpwFpeNdZWP",
+      "title": "EXCELISFUN PIVOT TABLES"
+    },
+    {
+      "playlist_id": "PLrRPvpgDmw0lPPRiJO5dCUratRGpGx3aT",
+      "title": "Excel & Power BI Basics Data Analysis Free Course (E-DAB)"
+    },
+    {
+      "playlist_id": "PLrRPvpgDmw0ks5W7U5NmDCU2ydSnNZA_1",
+      "title": "Full Advanced Data Analysis & BI Class (MSPTDA). Power Query, Power Pivot, DAX, M Code, Power BI & Excel (30+ Videos)"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNg07EzM1kTnBKDWnv9AMgct",
+      "title": "Insurtech"
+    },
+    {
+      "playlist_id": "PL8dPuuaLjXtNamNKW5qlS-nKgA0on7Qze",
+      "title": "Business Entrepreneurship"
+    },
+    {
+      "playlist_id": "PLrRPvpgDmw0k_aIFiiIgRufZ8nmB6iyr-",
+      "title": "Excel Power Pivot Playlist of Videos: Full Free Class"
+    },
+    {
+      "playlist_id": "PLrRPvpgDmw0kuIuvn2rCQI14AthSZ43ca",
+      "title": "Power Query Custom Functions: How to Build Power Query Functions Playlist of Videos"
+    },
+    {
+      "playlist_id": "PLrRPvpgDmw0m3ohSvgwoHvd0KO8QsQdiK",
+      "title": "Power Query (Get & Transform) Video Playlist of Videos"
+    },
+    {
+      "playlist_id": "PLrRPvpgDmw0nglJ9yX2XT5-K1A_AKHpvW",
+      "title": "DAX Formulas for Excel Power Pivot & Power BI Desktop"
+    },
+    {
+      "playlist_id": "PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi",
+      "title": "Neural networks"
+    },
+    {
+      "playlist_id": "PLsJWgOB5mIMDMyCcZSwSKin2XPJRYI9Ya",
+      "title": "Blockchain Course"
+    },
+    {
+      "playlist_id": "PLsJWgOB5mIMBinjH9ZAbiWiVxsizC5mU_",
+      "title": "Systems Thinking Course"
+    },
+    {
+      "playlist_id": "PL8fKU8-8tHqRP8L9u6BtdVFcK-O3W3xZy",
+      "title": "The Work of Director Spike Jonze. volume 1"
+    },
+    {
+      "playlist_id": "PLYj60P4emVv2eQ4iFyLsUBFmvrgYX4z5S",
+      "title": "Director's Label"
+    },
+    {
+      "playlist_id": "PLtKNX4SfKpzUxuye9OdaRfL5fbpGa3bH5",
+      "title": "Epistemology: Introduction to Theory of Knowledge"
+    },
+    {
+      "playlist_id": "PL8dPuuaLjXtNgK6MZucdYldNkMybYIHKR",
+      "title": "Philosophy"
+    }
+  ],
+  "total_playlists": 100,
+  "total_videos": 2916,
+  "duration_seconds": 277.1
+}

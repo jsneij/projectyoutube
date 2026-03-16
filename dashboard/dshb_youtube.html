@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YT Playlists — Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0e0f11;
+  --bg2: #16171b;
+  --bg3: #1c1d22;
+  --bg4: #24252b;
+  --fg: #e2e0db;
+  --fg2: #9b9a95;
+  --fg3: #5e5d59;
+  --border: #2a2b31;
+  --border2: #35363d;
+  --accent: #e54545;
+  --accent2: #b83232;
+  --accent-dim: rgba(229,69,69,0.10);
+  --accent-dim2: rgba(229,69,69,0.04);
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --radius: 6px;
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow: hidden;
+  height: 100vh;
+}
+
+#loading {
+  display: flex; align-items: center; justify-content: center;
+  height: 100vh; flex-direction: column; gap: 12px;
+}
+#loading .spinner {
+  width: 24px; height: 24px;
+  border: 2px solid var(--border2); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#loading p { color: var(--fg2); font-size: 12px; font-family: var(--mono); }
+
+#error {
+  display: none; align-items: center; justify-content: center;
+  height: 100vh; flex-direction: column; gap: 12px;
+  color: var(--accent); text-align: center; padding: 2rem;
+}
+#error code {
+  font-family: var(--mono); font-size: 11px; background: var(--bg3);
+  padding: 8px 16px; border-radius: var(--radius); color: var(--fg2);
+  max-width: 500px; word-break: break-all;
+}
+
+#app { display: none; height: 100vh; flex-direction: column; }
+
+.topbar {
+  display: flex; align-items: center; gap: 16px;
+  padding: 10px 16px; border-bottom: 1px solid var(--border);
+  background: var(--bg2); flex-shrink: 0;
+}
+.topbar .brand { font-family: var(--mono); font-weight: 600; font-size: 13px; color: var(--accent); letter-spacing: -0.3px; white-space: nowrap; }
+.topbar .brand span { color: var(--fg3); font-weight: 400; }
+.topbar .sep { width: 1px; height: 20px; background: var(--border2); }
+
+.stats-row { display: flex; gap: 1px; background: var(--border); flex-shrink: 0; }
+.stat-cell { flex: 1; background: var(--bg2); padding: 8px 12px; text-align: center; }
+.stat-cell .val { font-family: var(--mono); font-size: 16px; font-weight: 600; color: var(--fg); letter-spacing: -0.5px; }
+.stat-cell .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--fg3); margin-top: 1px; }
+
+.toolbar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px; border-bottom: 1px solid var(--border);
+  background: var(--bg); flex-shrink: 0;
+}
+.toolbar input[type="text"] {
+  font-family: var(--mono); font-size: 12px; padding: 5px 10px;
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius);
+  color: var(--fg); width: 280px; outline: none; transition: border-color 0.15s;
+}
+.toolbar input[type="text"]:focus { border-color: var(--accent); }
+.toolbar input[type="text"]::placeholder { color: var(--fg3); }
+.toolbar select {
+  font-family: var(--mono); font-size: 11px; padding: 5px 8px;
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius);
+  color: var(--fg2); outline: none; cursor: pointer;
+}
+.search-mode {
+  font-family: var(--mono); font-size: 10px; padding: 3px 8px; border-radius: 3px;
+  background: var(--accent-dim); color: var(--accent); white-space: nowrap; display: none;
+}
+.search-clear {
+  font-family: var(--mono); font-size: 12px; padding: 4px 9px;
+  background: none; border: 1px solid var(--border2); border-radius: var(--radius);
+  color: var(--fg3); cursor: pointer; line-height: 1; display: none;
+  transition: color 0.15s, border-color 0.15s;
+}
+.search-clear:hover { color: var(--accent); border-color: var(--accent); }
+
+.main { display: grid; grid-template-columns: 2fr 3fr; flex: 1; min-height: 0; overflow: hidden; }
+
+.panel-left { overflow-y: auto; border-right: 1px solid var(--border); }
+.panel-left::-webkit-scrollbar { width: 6px; }
+.panel-left::-webkit-scrollbar-track { background: transparent; }
+.panel-left::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+thead { position: sticky; top: 0; z-index: 10; }
+th {
+  text-align: left; padding: 6px 10px; font-family: var(--mono);
+  font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--fg3); background: var(--bg2); border-bottom: 1px solid var(--border);
+  cursor: pointer; user-select: none; white-space: nowrap; transition: color 0.15s;
+}
+th:hover { color: var(--fg2); }
+th.sorted { color: var(--accent); }
+th .arrow { font-size: 8px; margin-left: 3px; }
+
+td {
+  padding: 5px 10px; border-bottom: 1px solid var(--border);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px;
+}
+tr.row { cursor: pointer; transition: background 0.1s; }
+tr.row:hover { background: var(--bg3); }
+tr.row.selected { background: var(--accent-dim); }
+tr.row.selected td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+tr.row.has-match { background: var(--accent-dim2); }
+tr.row.has-match td:first-child { box-shadow: inset 2px 0 0 var(--accent2); }
+
+.num { text-align: right; font-family: var(--mono); font-size: 11px; }
+.dim { color: var(--fg2); }
+.match-count { font-family: var(--mono); font-size: 9px; color: var(--accent); margin-left: 4px; }
+
+.panel-right { overflow-y: auto; padding: 12px 16px; background: var(--bg); }
+.panel-right::-webkit-scrollbar { width: 6px; }
+.panel-right::-webkit-scrollbar-track { background: transparent; }
+.panel-right::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+.detail-head { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px; }
+.detail-head .title { font-size: 15px; font-weight: 600; margin-bottom: 4px; line-height: 1.3; }
+.detail-head .meta { font-family: var(--mono); font-size: 11px; color: var(--fg2); display: flex; flex-wrap: wrap; gap: 12px; }
+.detail-head .meta b { color: var(--fg); font-weight: 500; }
+.detail-head a { font-family: var(--mono); font-size: 10px; color: var(--accent); text-decoration: none; margin-top: 4px; display: inline-block; }
+.detail-head a:hover { text-decoration: underline; }
+
+.section-label { font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--fg3); margin: 12px 0 6px; display: flex; align-items: center; gap: 8px; }
+
+.vid-table { width: 100%; border-collapse: collapse; }
+.vid-table th {
+  text-align: left; padding: 3px 6px; font-family: var(--mono);
+  font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--fg3); background: var(--bg2); border-bottom: 1px solid var(--border);
+  cursor: pointer; position: sticky; top: 0; z-index: 5; user-select: none; white-space: nowrap;
+  transition: color 0.15s;
+}
+.vid-table th:hover { color: var(--fg2); }
+.vid-table th.v-sorted { color: var(--accent); }
+.vid-table th .arrow { font-size: 8px; margin-left: 3px; }
+.vid-table td {
+  padding: 4px 6px; border-bottom: 1px solid var(--border);
+  font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.vid-table a { color: var(--accent); text-decoration: none; }
+.vid-table a:hover { text-decoration: underline; }
+.vid-table .idx { color: var(--fg3); font-family: var(--mono); font-size: 10px; width: 56px; min-width: 56px; text-align: right; white-space: nowrap; }
+.vid-table .ch { color: var(--fg2); max-width: 130px; }
+.vid-table .dur { color: var(--fg3); font-family: var(--mono); font-size: 10px; text-align: right; }
+.vid-table .vc { text-align: right; font-family: var(--mono); font-size: 10px; }
+.vid-table .dt { color: var(--fg3); font-family: var(--mono); font-size: 10px; text-align: right; }
+.vid-table tr.vid-matched { background: var(--accent-dim); }
+
+mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2px; }
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div><p>loading ../data/youtube_playlists_compact.json ...</p></div>
+
+<div id="error">
+  <p style="font-size:15px;font-weight:600;">Failed to load data</p>
+  <p style="color:var(--fg2);font-size:12px;">Make sure <strong>data/youtube_playlists_compact.json</strong> exists at the project root.</p>
+  <code id="error-msg"></code>
+  <p style="color:var(--fg3);font-size:11px;margin-top:8px;">If opening locally, use a local server:<br><code style="display:block;margin-top:4px">python3 -m http.server 8000</code></p>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="brand">yt_db <span>// playlist explorer</span></div>
+    <div class="sep"></div>
+    <span id="topbar-user" style="font-family:var(--mono);font-size:11px;color:var(--fg3)"></span>
+    <div class="sep"></div>
+    <span id="topbar-source" style="font-family:var(--mono);font-size:10px;color:var(--fg3)"></span>
+    <div class="sep"></div>
+    <span id="topbar-fetch" style="font-family:var(--mono);font-size:10px;color:var(--fg3)"><span style="color:var(--accent)">last fetch</span> <span id="topbar-fetch-date"></span></span>
+  </div>
+
+  <div class="stats-row" id="stats-row"></div>
+
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="search playlists and videos...">
+    <button class="search-clear" id="search-clear">✕</button>
+    <span class="search-mode" id="search-mode"></span>
+    <span id="clear-sel" style="display:none;cursor:pointer;color:var(--accent);font-family:var(--mono);font-size:11px;margin-left:12px;text-decoration:underline">clear selection</span>
+    <label title="Hide members-only or unavailable videos. Search &quot;#locked&quot; to find them all." style="font-family:var(--mono);font-size:11px;color:var(--fg2);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;margin-left:auto">
+      <input type="checkbox" id="skip-locked" style="accent-color:var(--accent)"> &nbsp;skip 🔒
+    </label>
+    <label title="Hide playlists with 0 videos." style="font-family:var(--mono);font-size:11px;color:var(--fg2);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;margin-left:8px">
+      <input type="checkbox" id="skip-zero" checked style="accent-color:var(--accent)"> &nbsp;skip 0
+    </label>
+  </div>
+
+  <div class="main">
+    <div class="panel-left" id="table-container"></div>
+    <div class="panel-right" id="detail-panel"></div>
+  </div>
+</div>
+
+<script>
+(async function() {
+  const loadingEl = document.getElementById('loading');
+  const errorEl = document.getElementById('error');
+  const errorMsg = document.getElementById('error-msg');
+  const appEl = document.getElementById('app');
+
+  let raw;
+  try {
+    const resp = await fetch('../data/youtube_playlists_compact.json');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    raw = await resp.json();
+  } catch (err) {
+    loadingEl.style.display = 'none';
+    errorEl.style.display = 'flex';
+    errorMsg.textContent = err.message;
+    return;
+  }
+
+  const meta = raw.metadata || {};
+
+  function parseDate(s) {
+    if (!s) return null;
+    // Handle YYYYMMDD format
+    if (/^\d{8}$/.test(s)) return s.slice(0,4) + '-' + s.slice(4,6) + '-' + s.slice(6,8);
+    // Handle ISO
+    if (s.length >= 10) return s.slice(0, 10);
+    return s;
+  }
+
+  const playlists = (raw.playlists || []).map(p => {
+    const vids = (p.videos || []).map(v => ({
+      id: v.video_id || '',
+      title: v.title || '',
+      channel: v.channel || '',
+      duration: v.duration || '',
+      duration_seconds: v.duration_seconds || 0,
+      view_count: v.view_count || 0,
+      upload_date: parseDate(v.upload_date || v.upload_date_raw) || '',
+      fetched_at: v.added_to_playlist ? v.added_to_playlist.slice(0, 10) : '',
+      url: v.url || '',
+      members_only: v.members_only || false,
+    }));
+
+    const totalDur = vids.reduce((s, v) => s + v.duration_seconds, 0);
+
+    const addedDates = vids.map(v => v.fetched_at).filter(Boolean);
+    const latestAdded = addedDates.length ? addedDates.reduce((a, b) => a > b ? a : b) : '';
+    const luRaw = latestAdded || p.last_updated || p.modified_date || '';
+    const lu = parseDate(luRaw) || '';
+
+    return {
+      id: p.playlist_id,
+      title: p.title || '(untitled)',
+      url: p.url,
+      n: p.video_count || vids.length,
+      d: totalDur,
+      lu, // last updated date string YYYY-MM-DD or ''
+      vids,
+      deleted: p.deleted,
+      creator: p.playlist_creator || '',
+      privacy: p.privacy_status || '',
+    };
+  }).filter(p => !p.deleted);
+
+  const totalPlaylists = playlists.length;
+  const totalVids = playlists.reduce((s, p) => s + p.n, 0);
+  const totalDur = playlists.reduce((s, p) => s + p.d, 0);
+
+  let filtered = [];
+  let videoMatches = {};
+  let sortCol = 'lu', sortDir = -1;
+  let selected = null;
+  let searchTerm = '';
+  let searchSelectedPids = new Set();
+  let filterMin = 0;
+  let skipLocked = false;
+  let skipZero = true;
+
+  // Video sort state (per detail panel)
+  let vidSortCol = 'fetched_at';
+  let vidSortDir = -1;
+
+  function fmtNum(n) {
+    if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+    return n.toLocaleString();
+  }
+  function fmtDur(s) {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    return h > 0 ? h + 'h ' + String(m).padStart(2, '0') + 'm' : m + 'm';
+  }
+  function fmtDate(d) {
+    if (!d) return '—';
+    return d;
+  }
+  function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function fmtVidDur(s) {
+    if (!s) return '—';
+    return s.replace(/^0(\d:)/, '$1'); // "04:10:43" → "4:10:43", "MM:SS" unchanged
+  }
+
+  function highlight(text, term) {
+    if (!term) return escHtml(text);
+    const esc = escHtml(text);
+    const re = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+    return esc.replace(re, '<mark>$1</mark>');
+  }
+
+  loadingEl.style.display = 'none';
+  appEl.style.display = 'flex';
+
+  document.getElementById('topbar-user').textContent = meta.youtube_user ? `@${meta.youtube_user}` : '';
+  document.getElementById('topbar-source').textContent = meta.source || '';
+  if (meta.last_updated) {
+    const d = new Date(meta.last_updated);
+    const pad = n => String(n).padStart(2, '0');
+    const fmt = `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    document.getElementById('topbar-fetch-date').textContent = fmt;
+  }
+
+  function renderStats() {
+    const visPlaylists = playlists.filter(p => (!skipZero || p.n > 0));
+    const visVids = visPlaylists.flatMap(p => skipLocked ? p.vids.filter(v => !v.members_only) : p.vids);
+    const nPlaylists = visPlaylists.length;
+    const nVids = visVids.length;
+    const nDur = visVids.reduce((s, v) => s + v.duration_seconds, 0);
+    const avg = nVids > 0 ? Math.round(nDur / nVids / 60) : 0;
+    document.getElementById('stats-row').innerHTML = [
+      ['playlists', nPlaylists],
+      ['videos', nVids.toLocaleString()],
+      ['total hours', Math.round(nDur / 3600).toLocaleString()],
+      ['unique channels', new Set(visVids.map(v => v.channel).filter(Boolean)).size],
+      ['avg vid length', avg + 'm'],
+    ].map(([l, v]) => `<div class="stat-cell"><div class="val">${v}</div><div class="lbl">${l}</div></div>`).join('');
+  }
+  renderStats();
+
+  function doSort() {
+    filtered.sort((a, b) => {
+      let va = sortCol === 't' ? a.title : sortCol === 'cr' ? a.creator : a[sortCol];
+      let vb = sortCol === 't' ? b.title : sortCol === 'cr' ? b.creator : b[sortCol];
+      if (sortCol === 't' || sortCol === 'lu' || sortCol === 'cr') {
+        va = (va || '').toLowerCase(); vb = (vb || '').toLowerCase();
+        if (!va && !vb) return 0;
+        if (!va) return 1;
+        if (!vb) return -1;
+        return sortDir * (va < vb ? -1 : va > vb ? 1 : 0);
+      }
+      return sortDir * (va - vb);
+    });
+  }
+
+  function doFilter() {
+    const term = searchTerm.toLowerCase().trim();
+    videoMatches = {};
+
+    if (!term) {
+      filtered = playlists.filter(p => (filterMin <= 0 || p.n >= filterMin) && (!skipZero || p.n > 0));
+    } else {
+      filtered = [];
+      for (const p of playlists) {
+        if (filterMin > 0 && p.n < filterMin) continue;
+        if (skipZero && p.n === 0) continue;
+        const titleMatch = p.title.toLowerCase().includes(term);
+        const matchedVidIdx = [];
+        for (let i = 0; i < p.vids.length; i++) {
+          const v = p.vids[i];
+          if (skipLocked && v.members_only) continue;
+          const isLocked = term === '#locked' && v.members_only;
+          if (isLocked || v.title.toLowerCase().includes(term) || v.channel.toLowerCase().includes(term)) {
+            matchedVidIdx.push(i);
+          }
+        }
+        if (titleMatch || matchedVidIdx.length > 0) {
+          filtered.push(p);
+          if (matchedVidIdx.length > 0) videoMatches[p.id] = matchedVidIdx;
+        }
+      }
+    }
+
+    doSort();
+
+    const modeEl = document.getElementById('search-mode');
+    if (term && Object.keys(videoMatches).length > 0) {
+      const totalVidMatches = Object.values(videoMatches).reduce((s, arr) => s + arr.length, 0);
+      modeEl.textContent = `${totalVidMatches} video matches in ${Object.keys(videoMatches).length} playlists`;
+      modeEl.style.display = 'inline-block';
+    } else {
+      modeEl.style.display = 'none';
+    }
+  }
+
+  function renderTable() {
+    doFilter();
+
+    const ytUser = (meta.youtube_channel || meta.youtube_user || '').toLowerCase();
+    const cols = [
+      { k: '_idx', l: '#', w: '56px', align: 'right', nosort: true },
+      { k: 't', l: 'playlist', w: '' , align: 'left' },
+      { k: 'lu', l: 'last change', w: '95px', align: 'right' },
+      { k: 'n', l: 'videos', w: '55px', align: 'right' },
+      { k: 'cr', l: 'creator', w: '50px', align: 'center' },
+      { k: 'd', l: 'duration', w: '75px', align: 'right' },
+    ];
+
+    let h = '<table><thead><tr>';
+    for (const c of cols) {
+      const wStyle = c.w ? `width:${c.w};` : '';
+      if (c.nosort) {
+        h += `<th style="${wStyle}text-align:${c.align}">${c.l}</th>`;
+        continue;
+      }
+      const isSorted = sortCol === c.k;
+      const arrow = isSorted ? (sortDir === 1 ? '▲' : '▼') : '';
+      h += `<th style="${wStyle}text-align:${c.align}" class="${isSorted ? 'sorted' : ''}" data-col="${c.k}">${c.l}<span class="arrow">${arrow}</span></th>`;
+    }
+    h += '</tr></thead><tbody>';
+
+    const term = searchTerm.toLowerCase().trim();
+
+    for (let pIdx = 0; pIdx < filtered.length; pIdx++) {
+      const p = filtered[pIdx];
+      const sel = searchTerm.trim() ? searchSelectedPids.has(p.id) : selected === p.id;
+      const hasVidMatch = videoMatches[p.id] && videoMatches[p.id].length > 0;
+      const vidMatchCount = hasVidMatch ? videoMatches[p.id].length : 0;
+
+      let cls = 'row';
+      if (sel) cls += ' selected';
+      else if (hasVidMatch && term) cls += ' has-match';
+
+      const titleDisplay = term ? highlight(p.title, searchTerm.trim()) : escHtml(p.title);
+      const matchBadge = hasVidMatch && term ? `<span class="match-count">${vidMatchCount} vid${vidMatchCount > 1 ? 's' : ''}</span>` : '';
+
+      const visVids = skipLocked ? p.vids.filter(v => !v.members_only) : p.vids;
+      const visN = visVids.length;
+      const visD = visVids.reduce((s, v) => s + v.duration_seconds, 0);
+
+      const isMe = p.creator && p.creator.toLowerCase() === ytUser;
+      const crLabel = !p.creator ? '' : isMe ? 'me' : 'other';
+
+      h += `<tr class="${cls}" data-id="${p.id}">`;
+      h += `<td style="color:var(--fg3);font-family:var(--mono);font-size:10px;text-align:right;min-width:56px;white-space:nowrap">${pIdx + 1}</td>`;
+      h += `<td title="${escHtml(p.title)}">${titleDisplay}${matchBadge}</td>`;
+      h += `<td class="num dim">${fmtDate(p.lu)}</td>`;
+      h += `<td class="num">${visN}</td>`;
+      h += `<td class="num dim" style="text-align:center;font-size:10px">${crLabel}</td>`;
+      h += `<td class="num dim">${fmtDur(visD)}</td>`;
+      h += '</tr>';
+    }
+
+    h += '</tbody></table>';
+    document.getElementById('table-container').innerHTML = h;
+    bindTableEvents();
+  }
+
+  function bindTableEvents() {
+    document.querySelectorAll('#table-container th[data-col]').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.dataset.col;
+        if (sortCol === col) sortDir *= -1;
+        else { sortCol = col; sortDir = col === 't' ? 1 : -1; }
+        renderTable();
+        renderDetail();
+      });
+    });
+    document.querySelectorAll('tr.row').forEach(tr => {
+      tr.addEventListener('click', () => {
+        if (searchTerm.trim()) {
+          const pid = tr.dataset.id;
+          if (searchSelectedPids.has(pid)) searchSelectedPids.delete(pid);
+          else searchSelectedPids.add(pid);
+        } else {
+          selected = selected === tr.dataset.id ? null : tr.dataset.id;
+          vidSortCol = 'fetched_at';
+          vidSortDir = -1;
+        }
+        renderTable();
+        renderDetail();
+      });
+    });
+  }
+
+  function sortVids(vids, matchedSet, term) {
+    // If searching, matched first then rest
+    if (term && matchedSet && matchedSet.size > 0) {
+      const matched = [];
+      const rest = [];
+      for (let i = 0; i < vids.length; i++) {
+        if (matchedSet.has(i)) matched.push({ ...vids[i], _matched: true, _origIdx: i });
+        else rest.push({ ...vids[i], _matched: false, _origIdx: i });
+      }
+      sortVidArray(matched);
+      sortVidArray(rest);
+      return [...matched, ...rest];
+    }
+    const arr = vids.map((v, i) => ({ ...v, _matched: false, _origIdx: i }));
+    sortVidArray(arr);
+    return arr;
+  }
+
+  function sortVidArray(arr) {
+    arr.sort((a, b) => {
+      let va, vb;
+      if (vidSortCol === 'title') {
+        va = a.title.toLowerCase(); vb = b.title.toLowerCase();
+        return vidSortDir * (va < vb ? -1 : va > vb ? 1 : 0);
+      }
+      if (vidSortCol === 'channel') {
+        va = a.channel.toLowerCase(); vb = b.channel.toLowerCase();
+        return vidSortDir * (va < vb ? -1 : va > vb ? 1 : 0);
+      }
+      if (vidSortCol === 'upload_date' || vidSortCol === 'fetched_at') {
+        va = a[vidSortCol] || ''; vb = b[vidSortCol] || '';
+        if (!va && !vb) return 0;
+        if (!va) return 1;
+        if (!vb) return -1;
+        return vidSortDir * (va < vb ? -1 : va > vb ? 1 : 0);
+      }
+      if (vidSortCol === 'duration_seconds') {
+        return vidSortDir * (a.duration_seconds - b.duration_seconds);
+      }
+      // default: view_count
+      return vidSortDir * (a.view_count - b.view_count);
+    });
+  }
+
+  function renderSearchResults() {
+    const panel = document.getElementById('detail-panel');
+    const term = searchTerm.toLowerCase().trim();
+
+    let allMatched = [];
+    for (const p of playlists) {
+      for (const v of p.vids) {
+        if (skipLocked && v.members_only) continue;
+        const isLocked = term === '#locked' && v.members_only;
+        if (isLocked || v.title.toLowerCase().includes(term) || v.channel.toLowerCase().includes(term)) {
+          allMatched.push({ ...v, _playlistTitle: p.title, _playlistId: p.id });
+        }
+      }
+    }
+    if (searchSelectedPids.size > 0) {
+      allMatched = allMatched.filter(v => searchSelectedPids.has(v._playlistId));
+    }
+    sortVidArray(allMatched);
+
+    const selSuffix = searchSelectedPids.size > 0
+      ? ` <span style="color:var(--fg2)">in</span> <span style="color:var(--accent);font-family:var(--mono)">${searchSelectedPids.size}</span> <span style="color:var(--fg2)">playlist${searchSelectedPids.size > 1 ? 's' : ''}</span>`
+      : '';
+    let h = '<div class="detail-head">';
+    h += `<div class="title" style="font-size:13px"><span style="color:var(--accent);font-family:var(--mono)">${allMatched.length}</span> <span style="color:var(--fg2)">videos matching</span> &ldquo;${escHtml(searchTerm.trim())}&rdquo;${selSuffix}</div>`;
+    h += '</div>';
+
+    const vidCols = [
+      { k: '_idx',            l: '#',        w: '40px', align: 'right' },
+      { k: 'title',           l: 'title',    w: ''      },
+      { k: 'channel',         l: 'channel',  w: '110px' },
+      { k: '_playlist',       l: 'playlist', w: '120px' },
+      { k: 'duration_seconds',l: 'dur',      w: '70px'  },
+      { k: 'fetched_at',      l: 'added',    w: '85px'  },
+      { k: 'view_count',      l: 'views',    w: '70px'  },
+    ];
+
+    h += '<table class="vid-table"><thead><tr>';
+    for (const c of vidCols) {
+      if (c.k === '_idx' || c.k === '_playlist') {
+        h += `<th style="width:${c.w}${c.align ? ';text-align:' + c.align : ''}">${c.l}</th>`;
+        continue;
+      }
+      const isSorted = vidSortCol === c.k;
+      const arrow = isSorted ? (vidSortDir === 1 ? '▲' : '▼') : '';
+      const wStyle = c.w ? `width:${c.w}` : '';
+      const rightCols = ['view_count','duration_seconds','upload_date','fetched_at'];
+      const align = rightCols.includes(c.k) ? ';text-align:right' : '';
+      h += `<th style="${wStyle}${align}" class="${isSorted ? 'v-sorted' : ''}" data-vcol="${c.k}">${c.l}<span class="arrow">${arrow}</span></th>`;
+    }
+    h += '</tr></thead><tbody>';
+
+    allMatched.forEach((v, i) => {
+      const url = v.id ? `https://www.youtube.com/watch?v=${v.id}` : '#';
+      const titleHtml = highlight(v.title, searchTerm.trim());
+      h += '<tr>';
+      h += `<td class="idx">${v.members_only ? '🔒 ' : ''}${i + 1}</td>`;
+      h += `<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><a href="${url}" target="_blank" title="${escHtml(v.title)}">${titleHtml}</a></td>`;
+      h += `<td class="ch" title="${escHtml(v.channel)}">${escHtml(v.channel || '—')}</td>`;
+      h += `<td class="ch" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(v._playlistTitle)}">${escHtml(v._playlistTitle)}</td>`;
+      h += `<td class="dur">${fmtVidDur(v.duration)}</td>`;
+      h += `<td class="dt">${v.fetched_at || '—'}</td>`;
+      h += `<td class="vc">${fmtNum(v.view_count)}</td>`;
+      h += '</tr>';
+    });
+
+    h += '</tbody></table>';
+    panel.innerHTML = h;
+
+    panel.querySelectorAll('th[data-vcol]').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.dataset.vcol;
+        if (vidSortCol === col) vidSortDir *= -1;
+        else {
+          vidSortCol = col;
+          vidSortDir = (col === 'title' || col === 'channel' || col === 'fetched_at') ? 1 : -1;
+        }
+        renderSearchResults();
+      });
+    });
+  }
+
+  function renderDetail() {
+    const panel = document.getElementById('detail-panel');
+    const term = searchTerm.toLowerCase().trim();
+    document.getElementById('clear-sel').style.display =
+      (term && searchSelectedPids.size > 0) ? 'inline' : 'none';
+
+    if (term) { renderSearchResults(); return; }
+
+    if (!selected) {
+      panel.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;color:var(--fg3)">← select a playlist</div>';
+      return;
+    }
+
+    const p = playlists.find(x => x.id === selected);
+    if (!p) { panel.innerHTML = ''; return; }
+
+    const matchedSet = new Set(videoMatches[p.id] || []);
+    const vidsFiltered = skipLocked ? p.vids.filter(v => !v.members_only) : p.vids;
+    const vidsToShow = sortVids(vidsFiltered, matchedSet, term);
+
+    const visN = vidsFiltered.length;
+    const visD = vidsFiltered.reduce((s, v) => s + v.duration_seconds, 0);
+
+    const matchCount = term && matchedSet.size > 0 ? matchedSet.size : 0;
+    const label = matchCount > 0
+      ? `${matchCount} matched · ${visN} total`
+      : `all ${visN} videos`;
+
+    let h = '<div class="detail-head">';
+    h += `<div class="title">${escHtml(p.title)}</div>`;
+    const privColor = p.privacy === 'public' ? 'var(--accent)' : p.privacy === 'unlisted' ? '#e6c84c' : 'var(--fg)';
+    const privText = p.privacy ? `<span style="color:${privColor}">${p.privacy}</span>` : '';
+    h += `<div class="meta">
+      <span><b>${visN}</b> videos</span>
+      <span><b>${fmtDur(visD)}</b> total</span>${privText}
+    </div>`;
+    const creatorSpan = p.creator ? `<span style="color:var(--fg3);font-family:var(--mono);font-size:11px">by ${escHtml(p.creator)}</span>` : '';
+    if (p.url) h += `<div style="display:flex;gap:12px;align-items:center"><a href="${p.url}" target="_blank">open on youtube ↗</a>${creatorSpan}</div>`;
+    h += '</div>';
+
+    h += `<div class="section-label">${label}</div>`;
+
+    const vidCols = [
+      { k: '_idx', l: '#', w: '56px', align: 'right' },
+      { k: 'title', l: 'title', w: '' },
+      { k: 'channel', l: 'channel', w: '120px' },
+      { k: 'duration_seconds', l: 'dur', w: '70px' },
+      { k: 'upload_date', l: 'uploaded', w: '85px' },
+      { k: 'fetched_at', l: 'added', w: '85px' },
+      { k: 'view_count', l: 'views', w: '70px' },
+    ];
+
+    h += '<table class="vid-table"><thead><tr>';
+    for (const c of vidCols) {
+      if (c.k === '_idx') {
+        h += `<th style="width:${c.w}${c.align ? ';text-align:' + c.align : ''}">${c.l}</th>`;
+        continue;
+      }
+      const isSorted = vidSortCol === c.k;
+      const arrow = isSorted ? (vidSortDir === 1 ? '▲' : '▼') : '';
+      const wStyle = c.w ? `width:${c.w}` : '';
+      const rightCols = ['view_count','duration_seconds','upload_date','fetched_at'];
+      const align = rightCols.includes(c.k) ? ';text-align:right' : '';
+      h += `<th style="${wStyle}${align}" class="${isSorted ? 'v-sorted' : ''}" data-vcol="${c.k}">${c.l}<span class="arrow">${arrow}</span></th>`;
+    }
+    h += '</tr></thead><tbody>';
+
+    vidsToShow.forEach((v, i) => {
+      const url = v.id ? `https://www.youtube.com/watch?v=${v.id}` : '#';
+      const titleHtml = term ? highlight(v.title, searchTerm.trim()) : escHtml(v.title);
+      const chHtml = term ? highlight(v.channel, searchTerm.trim()) : escHtml(v.channel || '—');
+      const matchedClass = v._matched ? ' vid-matched' : '';
+
+      h += `<tr class="${matchedClass}">`;
+      h += `<td class="idx">${v.members_only ? '🔒 ' : ''}${i + 1}</td>`;
+      h += `<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><a href="${url}" target="_blank" title="${escHtml(v.title)}">${titleHtml}</a></td>`;
+      h += `<td class="ch" title="${escHtml(v.channel)}">${chHtml}</td>`;
+      h += `<td class="dur">${fmtVidDur(v.duration)}</td>`;
+      h += `<td class="dt">${fmtDate(v.upload_date)}</td>`;
+      h += `<td class="dt">${v.fetched_at || '—'}</td>`;
+      h += `<td class="vc">${fmtNum(v.view_count)}</td>`;
+      h += '</tr>';
+    });
+
+    h += '</tbody></table>';
+    panel.innerHTML = h;
+
+    // Bind video column sort
+    panel.querySelectorAll('th[data-vcol]').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.dataset.vcol;
+        if (vidSortCol === col) vidSortDir *= -1;
+        else {
+          vidSortCol = col;
+          vidSortDir = (col === 'title' || col === 'channel' || col === 'upload_date' || col === 'fetched_at') ? 1 : -1;
+        }
+        renderDetail();
+      });
+    });
+  }
+
+  document.getElementById('skip-zero').addEventListener('change', e => {
+    skipZero = e.target.checked;
+    renderStats();
+    renderTable();
+    renderDetail();
+  });
+
+  document.getElementById('skip-locked').addEventListener('change', e => {
+    skipLocked = e.target.checked;
+    renderStats();
+    renderTable();
+    renderDetail();
+  });
+
+  document.getElementById('clear-sel').addEventListener('click', () => {
+    searchSelectedPids.clear();
+    renderTable();
+    renderDetail();
+  });
+
+  const searchClearBtn = document.getElementById('search-clear');
+  searchClearBtn.addEventListener('click', () => {
+    searchTerm = '';
+    document.getElementById('search').value = '';
+    searchClearBtn.style.display = 'none';
+    searchSelectedPids.clear();
+    vidSortCol = 'fetched_at';
+    vidSortDir = -1;
+    renderTable();
+    renderDetail();
+  });
+
+  let searchTimeout;
+  document.getElementById('search').addEventListener('input', e => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      searchTerm = e.target.value;
+      searchClearBtn.style.display = searchTerm ? 'inline-block' : 'none';
+      if (!searchTerm.trim()) searchSelectedPids.clear();
+      renderTable();
+      renderDetail();
+    }, 150);
+  });
+
+
+  doFilter();
+  if (filtered.length) selected = filtered[0].id;
+  renderTable();
+  renderDetail();
+})();
+</script>
+</body>
+</html>
