@@ -94,10 +94,7 @@ def _run_debug(args: list[str], timeout: int = 90) -> list[dict]:
         cookie_args = ["--cookies", COOKIES_FILE]
     else:
         cookie_args = ["--cookies-from-browser", BROWSER]
-    cmd = [YTDLP] + cookie_args + [
-        "--no-warnings", "--ignore-errors",
-        "--extractor-args", "youtube:player_client=mweb",
-    ] + args
+    cmd = [YTDLP] + cookie_args + ["--no-warnings", "--ignore-errors"] + args
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
         if r.stderr.strip():
