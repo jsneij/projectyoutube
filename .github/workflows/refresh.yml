@@ -1,0 +1,50 @@
+name: Refresh YouTube Data
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # daily at 06:00 UTC
+  workflow_dispatch:       # manual trigger from Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install yt-dlp
+        run: pip install yt-dlp
+
+      - name: Write cookies file
+        run: echo "${{ secrets.YT_COOKIES }}" > /tmp/cookies.txt
+
+      - name: Run fetch script (fast mode)
+        env:
+          YTDLP_PATH: yt-dlp
+          YTDLP_COOKIES_FILE: /tmp/cookies.txt
+        run: python3 scripts/fetch_youtube_playlists.py --fast
+
+      - name: Clean up cookies
+        if: always()
+        run: rm -f /tmp/cookies.txt
+
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "No data changes — skipping commit."
+          else
+            git commit -m "chore: refresh YouTube playlist data"
+            git push
+          fi

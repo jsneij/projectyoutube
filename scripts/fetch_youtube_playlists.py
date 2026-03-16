@@ -59,8 +59,9 @@ from pathlib import Path
 from datetime import datetime, timezone, timedelta
 
 # ── Config ────────────────────────────────────────────────────────────────────
-YTDLP              = "/opt/homebrew/bin/yt-dlp"
+YTDLP              = os.environ.get("YTDLP_PATH", "/opt/homebrew/bin/yt-dlp")
 BROWSER            = "chrome"
+COOKIES_FILE       = os.environ.get("YTDLP_COOKIES_FILE", "")  # path to Netscape cookies.txt
 OUTPUT_DIR         = Path(__file__).parent.parent / "data"
 OUTPUT_FILE        = OUTPUT_DIR / "youtube_playlists.json"
 OUTPUT_COMPACT     = OUTPUT_DIR / "youtube_playlists_compact.json"
@@ -88,8 +89,11 @@ RESET  = "\033[0m"
 # ── yt-dlp runner ─────────────────────────────────────────────────────────────
 
 def _run(args: list[str], timeout: int = 90) -> list[dict]:
-    cmd = [YTDLP, "--cookies-from-browser", BROWSER,
-           "--no-warnings", "--ignore-errors"] + args
+    if COOKIES_FILE:
+        cookie_args = ["--cookies", COOKIES_FILE]
+    else:
+        cookie_args = ["--cookies-from-browser", BROWSER]
+    cmd = [YTDLP] + cookie_args + ["--no-warnings", "--ignore-errors"] + args
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
         return [json.loads(l) for l in r.stdout.splitlines()
@@ -244,20 +248,21 @@ def _fetch_wl_added_dates_innertube() -> dict[str, str]:
     Returns {video_id: "YYYY-MM-DD"}.
     Requires Chrome cookies (via yt-dlp).
     """
-    cookie_file = "/tmp/yt_wl_cookies.txt"
+    cookie_file = COOKIES_FILE or "/tmp/yt_wl_cookies.txt"
     result: dict[str, str] = {}
 
-    # Step 1: Export cookies via yt-dlp
-    try:
-        subprocess.run(
-            [YTDLP, "--cookies-from-browser", BROWSER, "--cookies", cookie_file,
-             "--skip-download", "--flat-playlist", "--playlist-items", "1",
-             "https://www.youtube.com/playlist?list=WL"],
-            capture_output=True, text=True, timeout=60,
-        )
-    except Exception as e:
-        print(f"  [wl-dates] cookie export failed: {e}", file=sys.stderr)
-        return result
+    # Step 1: Export cookies via yt-dlp (skip if using a pre-supplied cookies file)
+    if not COOKIES_FILE:
+        try:
+            subprocess.run(
+                [YTDLP, "--cookies-from-browser", BROWSER, "--cookies", cookie_file,
+                 "--skip-download", "--flat-playlist", "--playlist-items", "1",
+                 "https://www.youtube.com/playlist?list=WL"],
+                capture_output=True, text=True, timeout=60,
+            )
+        except Exception as e:
+            print(f"  [wl-dates] cookie export failed: {e}", file=sys.stderr)
+            return result
 
     try:
         cookie_jar = http.cookiejar.MozillaCookieJar(cookie_file)
@@ -1097,6 +1102,13 @@ def main():
     #   python3 fetch_youtube_playlists.py --fast
     # For titles + membership only (write-if-changed):
     #   python3 fetch_youtube_playlists.py --structural
+    # --cookies-file <path>: use a Netscape cookies.txt instead of browser cookies
+    global COOKIES_FILE
+    if "--cookies-file" in sys.argv:
+        idx = sys.argv.index("--cookies-file")
+        if idx + 1 < len(sys.argv):
+            COOKIES_FILE = sys.argv[idx + 1]
+
     enrich_mode     = "--fast" not in sys.argv and "--structural" not in sys.argv
     structural_mode = "--structural" in sys.argv
     enrich_only_mode = "--enrich-only" in sys.argv
