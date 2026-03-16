@@ -154,6 +154,20 @@ def enrich_videos_by_positions(playlist_url: str,
     return result
 
 
+def enrich_videos_by_url(video_ids: list[str]) -> dict[str, dict]:
+    """Fallback: fetch full metadata for individual videos by direct URL."""
+    result: dict[str, dict] = {}
+    for vid_id in video_ids:
+        url = f"https://www.youtube.com/watch?v={vid_id}"
+        entries = _run(["--dump-json", url], timeout=ENRICH_TIMEOUT)
+        for e in entries:
+            eid = e.get("id") or e.get("video_id") or ""
+            if eid:
+                result[eid] = e
+        time.sleep(DELAY_ENRICH_BATCH)
+    return result
+
+
 # ── YouTube Data API v3 (added_to_playlist dates) ─────────────────────────────
 
 def _get_youtube_service():
@@ -944,6 +958,14 @@ def run_enrichment(data: dict) -> dict:
         positions    = [v["position"] for _, v in unenriched if v.get("position")] \
                        or [i + 1 for i, _ in unenriched]
         enriched_map = enrich_videos_by_positions(url, positions)
+
+        # Fallback: fetch missing videos directly by URL
+        missing_ids = [v.get("video_id") for _, v in unenriched
+                       if not enriched_map.get(v.get("video_id", ""))]
+        if missing_ids:
+            print(f"    [fallback] fetching {len(missing_ids)} by direct URL", flush=True)
+            direct_map = enrich_videos_by_url(missing_ids)
+            enriched_map.update(direct_map)
 
         missing_ids = [v.get("video_id") for _, v in unenriched
                        if not enriched_map.get(v.get("video_id", ""))]
