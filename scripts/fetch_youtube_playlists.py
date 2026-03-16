@@ -54,6 +54,7 @@ import os
 import re
 import hashlib
 import http.cookiejar
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
@@ -62,6 +63,7 @@ from datetime import datetime, timezone, timedelta
 YTDLP              = os.environ.get("YTDLP_PATH", "/opt/homebrew/bin/yt-dlp")
 BROWSER            = "chrome"
 COOKIES_FILE       = os.environ.get("YTDLP_COOKIES_FILE", "")  # path to Netscape cookies.txt
+YT_API_KEY         = os.environ.get("YT_API_KEY", "")        # YouTube Data API v3 key
 OUTPUT_DIR         = Path(__file__).parent.parent / "data"
 OUTPUT_FILE        = OUTPUT_DIR / "youtube_playlists.json"
 OUTPUT_COMPACT     = OUTPUT_DIR / "youtube_playlists_compact.json"
@@ -528,13 +530,13 @@ def run_added_dates_pass(data: dict) -> bool:
 def run_upload_dates_pass(data: dict) -> bool:
     """Backfill upload_date for videos missing it, via YouTube Data API v3.
 
+    Supports two modes (checked in order):
+      1. YT_API_KEY env var — simple API key, no libraries needed (works in CI)
+      2. .env/yt_client_secrets.json — OAuth (local, needs google-api-python-client)
+
     Lightweight: 1 API call per 50 videos (snippet only).
     Modifies data in-place. Returns True if any dates were written.
     """
-    svc = _get_youtube_service()
-    if svc is None:
-        return False
-
     # Collect all video IDs missing upload_date across all playlists
     missing = []
     for p in data.get("playlists", []):
@@ -548,25 +550,52 @@ def run_upload_dates_pass(data: dict) -> bool:
         return False
 
     print(f"\n[upload dates] {len(missing)} videos missing upload_date — "
-          f"fetching from YouTube API...")
+          f"fetching from YouTube API...", flush=True)
 
     # Batch fetch upload dates
     vid_map: dict[str, str] = {}
     ids = [v["video_id"] for v in missing]
-    for i in range(0, len(ids), 50):
-        batch = ids[i:i + 50]
-        try:
-            resp = svc.videos().list(
-                part="snippet",
-                id=",".join(batch),
-            ).execute()
-        except Exception as e:
-            print(f"  [yt-api] videos.list error: {e}", file=sys.stderr)
-            continue
-        for item in resp.get("items", []):
-            pub = item.get("snippet", {}).get("publishedAt", "")
-            if pub:
-                vid_map[item["id"]] = pub[:10]  # "2026-03-15"
+
+    if YT_API_KEY:
+        # ── Simple API key mode (no pip packages needed) ──────────────
+        for i in range(0, len(ids), 50):
+            batch = ids[i:i + 50]
+            params = urllib.parse.urlencode({
+                "part": "snippet",
+                "id": ",".join(batch),
+                "fields": "items(id,snippet/publishedAt)",
+                "key": YT_API_KEY,
+            })
+            url = f"https://www.googleapis.com/youtube/v3/videos?{params}"
+            try:
+                with urllib.request.urlopen(url, timeout=30) as resp:
+                    body = json.loads(resp.read())
+            except Exception as e:
+                print(f"  [yt-api] videos.list error: {e}", file=sys.stderr)
+                continue
+            for item in body.get("items", []):
+                pub = item.get("snippet", {}).get("publishedAt", "")
+                if pub:
+                    vid_map[item["id"]] = pub[:10]  # "2026-03-15"
+    else:
+        # ── OAuth mode (needs google-api-python-client) ───────────────
+        svc = _get_youtube_service()
+        if svc is None:
+            return False
+        for i in range(0, len(ids), 50):
+            batch = ids[i:i + 50]
+            try:
+                resp = svc.videos().list(
+                    part="snippet",
+                    id=",".join(batch),
+                ).execute()
+            except Exception as e:
+                print(f"  [yt-api] videos.list error: {e}", file=sys.stderr)
+                continue
+            for item in resp.get("items", []):
+                pub = item.get("snippet", {}).get("publishedAt", "")
+                if pub:
+                    vid_map[item["id"]] = pub[:10]  # "2026-03-15"
 
     if not vid_map:
         return False

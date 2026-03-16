@@ -50,6 +50,7 @@ jobs:
         env:
           YTDLP_PATH: yt-dlp
           YTDLP_COOKIES_FILE: /tmp/cookies.txt
+          YT_API_KEY: ${{ secrets.YT_API_KEY }}
         run: python3 scripts/fetch_youtube_playlists.py --enrich-only
 
       - name: Clean up cookies
