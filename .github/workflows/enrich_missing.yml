@@ -1,0 +1,78 @@
+name: Enrich Missing
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type ENRICH-MISSING to confirm'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  enrich-missing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Confirm intent
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "ENRICH-MISSING" ]; then
+            echo "ERROR: Type ENRICH-MISSING to confirm. Aborting."
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check unenriched count
+        run: |
+          COUNT=$(python3 -c "
+          import json
+          with open('data/youtube_playlists_compact.json') as f:
+              data = json.load(f)
+          print(sum(1 for p in data.get('playlists',[]) if not p.get('deleted') for v in p.get('videos',[]) if v.get('enriched')==False))
+          ")
+          echo "Unenriched videos: $COUNT"
+          if [ "$COUNT" -eq 0 ]; then
+            echo "ERROR: No unenriched videos found. Nothing to do."
+            exit 1
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install yt-dlp
+        run: pip install yt-dlp
+
+      - name: Write cookies file
+        env:
+          YT_COOKIES: ${{ secrets.YT_COOKIES }}
+        run: printenv YT_COOKIES > /tmp/cookies.txt
+
+      - name: Enrich missing videos
+        env:
+          YTDLP_PATH: yt-dlp
+          YTDLP_COOKIES_FILE: /tmp/cookies.txt
+          YT_API_KEY: ${{ secrets.YT_API_KEY }}
+        run: python3 scripts/fetch_youtube_playlists.py --enrich-only
+
+      - name: Clean up cookies
+        if: always()
+        run: rm -f /tmp/cookies.txt
+
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "No data changes — skipping commit."
+          else
+            git commit -m "chore: enrich missing video metadata"
+            git pull --rebase
+            git push
+          fi

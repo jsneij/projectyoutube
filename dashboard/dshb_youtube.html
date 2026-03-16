@@ -354,7 +354,16 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
   if (unenrichedCount > 0) {
     document.getElementById('unenriched-count').textContent = unenrichedCount;
     document.getElementById('topbar-unenriched').style.display = 'inline';
-    if (unenrichedCount <= 10) document.getElementById('enrich-btn').style.display = 'inline';
+    const enrichBtn = document.getElementById('enrich-btn');
+    enrichBtn.style.display = 'inline';
+    if (unenrichedCount <= 10) {
+      enrichBtn.href = 'https://github.com/jsneij/projectyoutube/actions/workflows/enrich_missing_10.yml';
+    } else {
+      enrichBtn.href = 'https://github.com/jsneij/projectyoutube/actions/workflows/enrich_missing.yml';
+      enrichBtn.style.background = 'var(--bg3)';
+      enrichBtn.style.color = 'var(--fg3)';
+      enrichBtn.style.borderColor = 'var(--border2)';
+    }
   }
 
   function renderStats() {
