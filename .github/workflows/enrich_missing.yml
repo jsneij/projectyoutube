@@ -1,0 +1,51 @@
+name: Enrich Missing Videos
+
+on:
+  workflow_dispatch:  # manual trigger only
+
+permissions:
+  contents: write
+
+jobs:
+  enrich-missing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install yt-dlp
+        run: pip install yt-dlp
+
+      - name: Write cookies file
+        env:
+          YT_COOKIES: ${{ secrets.YT_COOKIES }}
+        run: printenv YT_COOKIES > /tmp/cookies.txt
+
+      - name: Enrich missing videos
+        env:
+          YTDLP_PATH: yt-dlp
+          YTDLP_COOKIES_FILE: /tmp/cookies.txt
+        run: python3 scripts/fetch_youtube_playlists.py --enrich-only
+
+      - name: Clean up cookies
+        if: always()
+        run: rm -f /tmp/cookies.txt
+
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "No data changes — skipping commit."
+          else
+            git commit -m "chore: enrich missing video metadata"
+            git push
+          fi
