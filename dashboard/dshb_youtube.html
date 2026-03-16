@@ -432,7 +432,21 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
   function renderTable() {
     doFilter();
 
-    const ytUser = (meta.youtube_channel || meta.youtube_user || '').toLowerCase();
+    const ytHandle = (meta.youtube_user || '').toLowerCase();
+    const ytChannel = (meta.youtube_channel || '').toLowerCase();
+    const myNames = new Set([ytHandle, ytChannel].filter(Boolean));
+    // Also detect display name from playlists with known-own IDs (WL, LL)
+    for (const p of playlists) {
+      if (p.id === 'WL' || p.id === 'LL' || p.id.startsWith('PL')) {
+        // skip — can't infer from these
+      }
+    }
+    // Add the creator of Watch Later / Liked Videos as a known "me" name
+    for (const p of playlists) {
+      if ((p.id === 'WL' || p.id === 'LL') && p.creator) {
+        myNames.add(p.creator.toLowerCase());
+      }
+    }
     const cols = [
       { k: '_idx', l: '#', w: '56px', align: 'right', nosort: true },
       { k: 't', l: 'playlist', w: '' , align: 'left' },
@@ -474,7 +488,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       const visN = visVids.length;
       const visD = visVids.reduce((s, v) => s + v.duration_seconds, 0);
 
-      const isMe = p.creator && p.creator.toLowerCase() === ytUser;
+      const isMe = p.creator && myNames.has(p.creator.toLowerCase());
       const crLabel = !p.creator ? '' : isMe ? 'me' : 'other';
 
       h += `<tr class="${cls}" data-id="${p.id}">`;
