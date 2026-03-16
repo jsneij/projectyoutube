@@ -1,7 +1,11 @@
 name: Complete Enrichment (Full Sync + Enrich)
 
 on:
-  workflow_dispatch:  # manual trigger only
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type ENRICH to confirm (uses ~60 min of GitHub Actions quota)'
+        required: true
 
 permissions:
   contents: write
@@ -12,6 +16,13 @@ jobs:
     timeout-minutes: 120
 
     steps:
+      - name: Confirm intent
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "ENRICH" ]; then
+            echo "ERROR: Type ENRICH to confirm. Aborting."
+            exit 1
+          fi
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
