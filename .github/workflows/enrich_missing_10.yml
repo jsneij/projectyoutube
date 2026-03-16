@@ -65,5 +65,6 @@ jobs:
             echo "No data changes — skipping commit."
           else
             git commit -m "chore: enrich missing video metadata"
+            git pull --rebase
             git push
           fi

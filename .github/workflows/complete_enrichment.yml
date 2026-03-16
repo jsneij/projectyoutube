@@ -58,5 +58,6 @@ jobs:
             echo "No data changes — skipping commit."
           else
             git commit -m "chore: full sync + enrichment"
+            git pull --rebase
             git push
           fi
