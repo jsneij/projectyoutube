@@ -1,28 +1,19 @@
 {
-  "run_at": "2026-03-16T21:21:24.232706+00:00",
+  "run_at": "2026-03-16T22:42:53.709847+00:00",
   "is_first_run": false,
   "enrich_mode": false,
   "playlists_new": [],
   "playlists_deleted": [],
-  "playlists_updated": [
+  "playlists_updated": [],
+  "playlists_unchanged": [
     {
       "playlist_id": "WL",
-      "title": "Watch later",
-      "videos_added": [
-        "iRZ2A9HC-GY"
-      ],
-      "videos_removed": []
+      "title": "Watch later"
     },
     {
       "playlist_id": "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1",
-      "title": "AI Claude",
-      "videos_added": [
-        "4u94juYwLLM"
-      ],
-      "videos_removed": []
-    }
-  ],
-  "playlists_unchanged": [
+      "title": "AI Claude"
+    },
     {
       "playlist_id": "PLiWBEZWrNsNhBZhoERiuS9wFPtQIY8sxk",
       "title": "No-Code"
@@ -410,5 +401,5 @@
   ],
   "total_playlists": 98,
   "total_videos": 2918,
-  "duration_seconds": 212.5
+  "duration_seconds": 220.6
 }
