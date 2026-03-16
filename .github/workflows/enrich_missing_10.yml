@@ -1,4 +1,4 @@
-name: Enrich Missing Videos
+name: Enrich Missing (max 10)
 
 on:
   workflow_dispatch:  # manual trigger only
@@ -9,11 +9,29 @@ permissions:
 jobs:
   enrich-missing:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Check unenriched count
+        run: |
+          COUNT=$(python3 -c "
+          import json
+          with open('data/youtube_playlists_compact.json') as f:
+              data = json.load(f)
+          print(sum(1 for p in data.get('playlists',[]) if not p.get('deleted') for v in p.get('videos',[]) if v.get('enriched')==False))
+          ")
+          echo "Unenriched videos: $COUNT"
+          if [ "$COUNT" -eq 0 ]; then
+            echo "ERROR: No unenriched videos found. Nothing to do."
+            exit 1
+          fi
+          if [ "$COUNT" -gt 10 ]; then
+            echo "ERROR: $COUNT unenriched videos exceeds limit of 10. Use Complete Enrichment instead."
+            exit 1
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@v5
