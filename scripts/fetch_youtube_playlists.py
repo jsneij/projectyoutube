@@ -184,7 +184,7 @@ def enrich_videos_by_url(video_ids: list[str]) -> dict[str, dict]:
     result: dict[str, dict] = {}
     for vid_id in video_ids:
         url = f"https://www.youtube.com/watch?v={vid_id}"
-        entries = _run_debug(["--dump-json", url], timeout=ENRICH_TIMEOUT)
+        entries = _run_debug(["--dump-json", "--skip-download", "--no-check-formats", url], timeout=ENRICH_TIMEOUT)
         for e in entries:
             eid = e.get("id") or e.get("video_id") or ""
             if eid:
