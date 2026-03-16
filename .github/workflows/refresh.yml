@@ -1,4 +1,4 @@
-name: Refresh YouTube Data
+name: Fetch YouTube Data
 
 on:
   schedule:
