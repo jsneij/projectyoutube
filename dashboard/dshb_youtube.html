@@ -378,7 +378,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       ['videos', nVids.toLocaleString()],
       ['total hours', Math.round(nDur / 3600).toLocaleString()],
       ['unique channels', new Set(visVids.map(v => v.channel).filter(Boolean)).size],
-      ['avg vid length', avg + 'm'],
+      ['avg vid length', avg + ' m'],
     ].map(([l, v]) => `<div class="stat-cell"><div class="val">${v}</div><div class="lbl">${l}</div></div>`).join('');
   }
   renderStats();
