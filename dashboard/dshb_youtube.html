@@ -201,6 +201,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     <span id="topbar-source" style="font-family:var(--mono);font-size:10px;color:var(--fg3)"></span>
     <div class="sep"></div>
     <span id="topbar-fetch" style="font-family:var(--mono);font-size:10px;color:var(--fg3)"><span style="color:var(--accent)">last fetch</span> <span id="topbar-fetch-date"></span></span>
+    <span id="topbar-unenriched" style="font-family:var(--mono);font-size:10px;color:var(--fg3);display:none"><span class="sep" style="display:inline-block;width:1px;height:14px;background:var(--border2);vertical-align:middle;margin:0 12px"></span><span id="unenriched-count" style="color:var(--accent)"></span> unenriched</span>
   </div>
 
   <div class="stats-row" id="stats-row"></div>
@@ -266,6 +267,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       fetched_at: v.added_to_playlist ? v.added_to_playlist.slice(0, 10) : '',
       url: v.url || '',
       members_only: v.members_only || false,
+      enriched: v.enriched !== false,
     }));
 
     const totalDur = vids.reduce((s, v) => s + v.duration_seconds, 0);
@@ -345,6 +347,12 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     const pad = n => String(n).padStart(2, '0');
     const fmt = `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     document.getElementById('topbar-fetch-date').textContent = fmt;
+  }
+
+  const unenrichedCount = playlists.reduce((s, p) => s + p.vids.filter(v => !v.enriched).length, 0);
+  if (unenrichedCount > 0) {
+    document.getElementById('unenriched-count').textContent = unenrichedCount;
+    document.getElementById('topbar-unenriched').style.display = 'inline';
   }
 
   function renderStats() {
