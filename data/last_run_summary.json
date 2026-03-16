@@ -1,21 +1,19 @@
 {
-  "run_at": "2026-03-15T21:06:50.876312+00:00",
+  "run_at": "2026-03-16T20:54:30.978983+00:00",
   "is_first_run": false,
-  "enrich_mode": true,
+  "enrich_mode": false,
   "playlists_new": [],
-  "playlists_deleted": [],
-  "playlists_updated": [
-    {
-      "playlist_id": "PLTFCM8gfGxuGSKCOxzFTg8TMhn1b7CeML",
-      "title": "Entrepreneur Motivation & Success Motivational Videos",
-      "emptied": true
-    },
+  "playlists_deleted": [
     {
       "playlist_id": "PLui6Eyny-Uzzl1q-GskVUZp6Fk8nIr9rK",
-      "title": "REVOLUTION: 31 Days of Yoga",
-      "emptied": true
+      "title": "REVOLUTION: 31 Days of Yoga"
+    },
+    {
+      "playlist_id": "PLTFCM8gfGxuGSKCOxzFTg8TMhn1b7CeML",
+      "title": "Entrepreneur Motivation & Success Motivational Videos"
     }
   ],
+  "playlists_updated": [],
   "playlists_unchanged": [
     {
       "playlist_id": "PLiWBEZWrNsNhBZhoERiuS9wFPtQIY8sxk",
@@ -410,7 +408,7 @@
       "title": "Philosophy"
     }
   ],
-  "total_playlists": 100,
+  "total_playlists": 98,
   "total_videos": 2916,
-  "duration_seconds": 277.1
+  "duration_seconds": 210.8
 }
