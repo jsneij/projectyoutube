@@ -166,7 +166,8 @@ def enrich_videos_by_positions(playlist_url: str,
                for i in range(0, len(positions), ENRICH_BATCH_SIZE)]
     for bi, batch in enumerate(batches, 1):
         entries = _run(
-            ["--dump-json", "--playlist-items", ",".join(str(p) for p in batch),
+            ["--dump-json", "--skip-download", "--ignore-no-formats-error",
+             "--playlist-items", ",".join(str(p) for p in batch),
              playlist_url],
             timeout=ENRICH_TIMEOUT,
         )
@@ -184,7 +185,7 @@ def enrich_videos_by_url(video_ids: list[str]) -> dict[str, dict]:
     result: dict[str, dict] = {}
     for vid_id in video_ids:
         url = f"https://www.youtube.com/watch?v={vid_id}"
-        entries = _run_debug(["-j", "-f", "b*", url], timeout=ENRICH_TIMEOUT)
+        entries = _run_debug(["-j", "--skip-download", "--ignore-no-formats-error", url], timeout=ENRICH_TIMEOUT)
         for e in entries:
             eid = e.get("id") or e.get("video_id") or ""
             if eid:
