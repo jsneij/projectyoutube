@@ -25,7 +25,15 @@ jobs:
         run: pip install yt-dlp
 
       - name: Write cookies file
-        run: echo "${{ secrets.YT_COOKIES }}" > /tmp/cookies.txt
+        env:
+          YT_COOKIES: ${{ secrets.YT_COOKIES }}
+        run: printenv YT_COOKIES > /tmp/cookies.txt
+
+      - name: Verify cookies file
+        run: |
+          echo "Lines: $(wc -l < /tmp/cookies.txt)"
+          echo "First line: $(head -1 /tmp/cookies.txt)"
+          echo "YouTube cookie lines: $(grep -c youtube /tmp/cookies.txt || true)"
 
       - name: Run fetch script (fast mode)
         env:
