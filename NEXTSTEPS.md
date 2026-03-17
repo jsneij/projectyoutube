@@ -1,6 +1,5 @@
 # 🚀 What I've Learned & What's Next
 
----
 
 ## 🏠 Phase 1 — Local Project (Mac + Claude Code)
 
@@ -22,7 +21,6 @@
 | 🔐 **Credentials** | .env/, OAuth tokens, cookie authentication |
 | 🧩 **API reverse engineering** | innertube browse, SAPISIDHASH auth, continuation tokens |
 
----
 
 ## ☁️ Phase 2 — GitHub + Codespaces (This Project)
 
@@ -46,7 +44,6 @@
 | 🐛 **CI debugging** | Reading action logs, yt-dlp JS runtime issues, --skip-download workaround |
 | 🔄 **CI/CD concepts** | Automated pipelines, push conflicts, pull --rebase in workflows |
 
----
 
 ## 🔮 What's Next
 
@@ -77,10 +74,8 @@
 | 11 | **Unified dashboard** | One dashboard that combines YouTube, bookmarks, and books — search across all your knowledge |
 | 12 | **Semantic search** | Use embeddings to connect content across sources — "show me everything I've saved about philosophy" |
 
----
 
 > 💡 **The biggest leverage move is probably #3 (Agent SDK)** — you've already proven the pattern interactively, and turning it into a headless agent that maintains your YouTube library automatically would be a natural evolution of exactly what you built.
 
----
 
 *Built with Claude Code — from zero to automated pipeline in two projects.*
