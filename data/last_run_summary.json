@@ -1,5 +1,5 @@
 {
-  "run_at": "2026-03-16T23:47:45.999667+00:00",
+  "run_at": "2026-03-17T00:41:38.647831+00:00",
   "is_first_run": false,
   "enrich_mode": false,
   "playlists_new": [],
@@ -8,7 +8,8 @@
     {
       "playlist_id": "WL",
       "title": "Watch later",
-      "videos_added": [
+      "videos_added": [],
+      "videos_removed": [
         "eO88q_cm0Hw",
         "QjgYGuYsxgM",
         "Iup1WlUyj9M",
@@ -20,9 +21,12 @@
         "TZUTe7s11-I",
         "M0iKoDMikoU",
         "aMsJ-AZB3Ao",
-        "0iE1_m56ovc"
-      ],
-      "videos_removed": []
+        "0iE1_m56ovc",
+        "FKLr3ft8ea0",
+        "OeTFAiYbR9o",
+        "UabBYexBD4k",
+        "iRZ2A9HC-GY"
+      ]
     }
   ],
   "playlists_unchanged": [
@@ -416,6 +420,6 @@
     }
   ],
   "total_playlists": 98,
-  "total_videos": 2933,
-  "duration_seconds": 218.8
+  "total_videos": 2917,
+  "duration_seconds": 225.8
 }
