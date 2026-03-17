@@ -1,3 +1,8 @@
+---
+name: efficient-json-fetch-pattern
+description: Pattern for projects that download large lists from an API into a local JSON file, with fast incremental updates and clear terminal feedback. Apply when building any fetch pipeline that syncs remote data to local JSON.
+---
+
 # Efficient JSON Fetch Pattern
 
 A pattern for projects that download large lists from an API into a local JSON file, where you want fast incremental updates and clear terminal feedback.
@@ -36,12 +41,11 @@ Don't re-parse your full JSON to detect changes. Instead, maintain a small `fetc
 ```json
 {
   "fetched_at": "2026-03-14T10:22:00+00:00",
-  "counts": { "owned": 87, "wishlist_total": 34 },
+  "counts": { "total_items": 87, "enriched": 82 },
   "items": {
     "item_id_123": {
       "name": "Item Name",
-      "your_field_1": "value",
-      "your_field_2": 5
+      "tracked_field": "value"
     }
   }
 }
@@ -60,11 +64,9 @@ Only include fields in the fetch log that **you** modify — not fields that cha
 
 Examples of fields worth tracking:
 - Status / category (owned, wishlist, etc.)
-- Your personal rating
-- Your comment or note
+- Your personal rating or note
+- Membership (which playlist/collection an item belongs to)
 - Acquisition or creation date
-- Play/watch count (if you log it)
-- Priority or sort order you assigned
 
 ---
 
@@ -74,7 +76,7 @@ When only a subset of items changed, don't overwrite your full JSON with just th
 1. Load the existing full JSON into an in-memory index (`id → item`)
 2. Parse the changed items from the API response
 3. For each changed item, update its entry in the index
-4. Re-categorize and write the full merged dataset back out
+4. Write the full merged dataset back out
 
 This keeps your full local copy intact while only touching what actually changed.
 
@@ -113,3 +115,16 @@ RESET  = "\033[0m"
 - **Green** → nothing changed, everything up to date
 - **Yellow** → something changed (new items, updated fields, removed items)
 - Default → progress steps, counts, file paths
+
+---
+
+## 7. Two-tier fetching (fast + enrichment)
+
+For APIs where full detail is expensive, split into two tiers:
+
+| Tier | Speed | Data | When to run |
+|------|-------|------|-------------|
+| **Fast sync** | 1 call per collection | titles, IDs, counts, membership | Daily / automated |
+| **Enrichment** | 1 call per item | descriptions, dates, tags, metadata | Manual / on-demand |
+
+Mark each item with `"enriched": true/false` so you can track which items still need the detailed pass. Fast sync should never overwrite enrichment data.

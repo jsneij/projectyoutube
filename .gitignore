@@ -16,5 +16,8 @@ __pycache__/
 .vscode/
 .idea/
 
+# Logs
+*.log
+
 # Temp
 /tmp/

@@ -1,6 +1,12 @@
+---
+name: watch-later-add-date-investigation
+description: Research on how to recover the "date added" for YouTube Watch Later videos. Documents 7 methods tested, with HTML page scraping as the working solution. Reusable for any project needing Watch Later metadata.
+---
+
 # Watch Later "Added To Playlist" Date — Investigation Report
 
 **Date:** 2026-03-15 (updated)
+**Status:** Implemented in `scripts/fetch_youtube_playlists.py` → `_fetch_wl_added_dates_html()`
 **Conclusion: Add dates ARE recoverable for ALL Watch Later videos via HTML page scraping + innertube pagination. Precision decreases with age (from ±1 day to ±6 months).**
 
 ---
