@@ -19,12 +19,12 @@ Search across all playlists, sort by anything, filter by playlist. Stats at the 
 
 ## The automation rabbit hole
 
-| Workflow | What it does |
-|---|---|
-| **Fetch YouTube Data** | Runs daily at 4am — because why wake up to do it yourself |
-| **Enrich Missing (max 10)** | One-click enrichment for a few new videos |
-| **Enrich Missing** | For when you went on a YouTube binge and added 30 videos |
-| **Complete Enrichment** | The nuclear option — re-enriches everything. Requires typing a confirmation word so you don't hit it by accident |
+| Workflow                     | What it does |
+|------------------------------|---|
+| **Fetch&nbsp;YouTube&nbsp;Data**       | Runs daily at 4am — because why wake up to do it yourself |
+| **Enrich&nbsp;Missing&nbsp;(max&nbsp;10)** | One-click enrichment for a few new videos |
+| **Enrich&nbsp;Missing**             | For when you went on a YouTube binge and added 30 videos |
+| **Complete&nbsp;Enrichment**         | The nuclear option — re-enriches everything. Requires typing a confirmation word so you don't hit it by accident |
 
 ## Built with
 
