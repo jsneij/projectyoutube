@@ -34,3 +34,7 @@ Search across all playlists, sort by anything, filter by playlist. Stats at the 
 - **GitHub Actions** for the automation magic
 - **GitHub Pages** for hosting
 - Vanilla HTML/CSS/JS — no frameworks, no build step, no npm install that downloads half the internet
+
+## What's next
+
+All that enrichment data — tags, categories, descriptions, likes — isn't visible in the dashboard yet. That's on purpose. The plan is to use it to extract real insights: what kind of content I actually watch, smarter search across videos, and understanding the knowledge value of my collection. And this is just phase one. Bookmarks and books I've read are next — the end goal is to wire it all together into something like a second brain.
