@@ -10,6 +10,8 @@ ProjectYouTube/
 ├── README.md
 ├── index.html                       ← GitHub Pages redirect to dashboard
 ├── .gitignore
+├── assets/
+│   └── favicon.svg                  ← dark-mode YouTube-style favicon (SVG)
 ├── scripts/
 │   └── fetch_youtube_playlists.py
 ├── dashboard/

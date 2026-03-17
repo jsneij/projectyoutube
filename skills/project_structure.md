@@ -14,6 +14,7 @@ ProjectRoot/
 ├── index.html                       ← redirect to dashboard (for GitHub Pages)
 ├── .gitignore
 ├── .env/                            ← credentials (never committed)
+├── assets/                          ← static assets (favicon, images, etc.)
 ├── scripts/                         ← all executable scripts (Python, bash, etc.)
 ├── dashboard/                       ← web dashboard files
 │   └── dshb_<project>.html          ← single-file HTML dashboard
@@ -76,5 +77,6 @@ For projects hosted on GitHub Pages:
 | HTML dashboard | `dashboard/dshb_<name>.html` |
 | Reusable Claude skill files | `skills/` |
 | GitHub Actions workflows | `.github/workflows/` |
+| Static assets (favicon, images) | `assets/` |
 | Credentials | `.env/` (root, never committed) |
 | GitHub Pages entry point | `index.html` (root, redirects to dashboard) |
