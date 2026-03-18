@@ -456,11 +456,48 @@ def _enrich_via_api(svc, video_ids: list[str]) -> dict[str, dict]:
     return result
 
 
+def _fetch_playlist_added_dates_api_key(playlist_id: str) -> dict[str, str]:
+    """Fetch added_to_playlist dates using simple YT_API_KEY (no OAuth needed).
+    Uses playlistItems.list — works for public/unlisted playlists.
+    Returns {video_id: "YYYY-MM-DD"}."""
+    result: dict[str, str] = {}
+    page_token = ""
+    while True:
+        params: dict = {
+            "part": "snippet",
+            "playlistId": playlist_id,
+            "maxResults": 50,
+            "fields": "items(snippet/resourceId/videoId,snippet/publishedAt),nextPageToken",
+            "key": YT_API_KEY,
+        }
+        if page_token:
+            params["pageToken"] = page_token
+        url = f"https://www.googleapis.com/youtube/v3/playlistItems?{urllib.parse.urlencode(params)}"
+        try:
+            with urllib.request.urlopen(url, timeout=30) as resp:
+                body = json.loads(resp.read())
+        except Exception as e:
+            print(f"  [yt-api] playlistItems error for {playlist_id}: {e}",
+                  file=sys.stderr)
+            break
+        for item in body.get("items", []):
+            vid = item.get("snippet", {}).get("resourceId", {}).get("videoId", "")
+            pub = item.get("snippet", {}).get("publishedAt", "")
+            if vid and pub:
+                result[vid] = pub[:10]
+        page_token = body.get("nextPageToken", "")
+        if not page_token:
+            break
+    return result
+
+
 def run_added_dates_pass(data: dict) -> bool:
     """Backfill added_to_playlist for any video that is missing it.
 
-    Uses YouTube Data API v3 for normal playlists, and innertube HTML scraping
-    for Watch Later (which the API blocks).
+    Supports two modes (checked in order):
+      1. YT_API_KEY env var — simple API key, no libraries needed (works in CI)
+      2. .env/yt_client_secrets.json — OAuth (local, needs google-api-python-client)
+    Falls back to innertube HTML scraping for Watch Later (which the API blocks).
     Modifies data in-place. Returns True if any dates were written.
     """
     playlists_needing = [
@@ -480,13 +517,11 @@ def run_added_dates_pass(data: dict) -> bool:
 
     any_written = False
 
-    # Standard API pass for non-WL playlists
-    svc = _get_youtube_service()
-    if svc is not None:
-        for playlist in playlists_needing:
-            if playlist["playlist_id"] == "WL":
-                continue  # handled by innertube below
-            dates = _fetch_playlist_added_dates(svc, playlist["playlist_id"])
+    # Standard API pass for non-WL playlists (API key first, then OAuth)
+    non_wl = [p for p in playlists_needing if p["playlist_id"] != "WL"]
+    if non_wl and YT_API_KEY:
+        for playlist in non_wl:
+            dates = _fetch_playlist_added_dates_api_key(playlist["playlist_id"])
             if not dates:
                 continue
             count = 0
@@ -499,6 +534,28 @@ def run_added_dates_pass(data: dict) -> bool:
             if count:
                 print(f"  {GREEN}{playlist['title']!r}{RESET}: {count} dates")
                 any_written = True
+        # Remove playlists that were fully resolved
+        non_wl = [p for p in non_wl
+                   if any(not v.get("added_to_playlist") for v in p["videos"])]
+
+    # OAuth fallback for any remaining non-WL playlists
+    if non_wl:
+        svc = _get_youtube_service()
+        if svc is not None:
+            for playlist in non_wl:
+                dates = _fetch_playlist_added_dates(svc, playlist["playlist_id"])
+                if not dates:
+                    continue
+                count = 0
+                for v in playlist["videos"]:
+                    if not v.get("added_to_playlist"):
+                        d = dates.get(v["video_id"])
+                        if d:
+                            v["added_to_playlist"] = d
+                            count += 1
+                if count:
+                    print(f"  {GREEN}{playlist['title']!r}{RESET}: {count} dates")
+                    any_written = True
 
     # Innertube fallback for Watch Later
     wl_playlists = [p for p in playlists_needing if p["playlist_id"] == "WL"]
@@ -614,15 +671,42 @@ def run_upload_dates_pass(data: dict) -> bool:
     return count > 0
 
 
+def _fetch_playlist_metadata_api_key(playlist_ids: list[str]) -> dict[str, dict]:
+    """Fetch playlist creator and privacy via simple YT_API_KEY (no OAuth).
+    Returns {playlist_id: {"creator": str, "privacy": str}}."""
+    pid_map: dict[str, dict] = {}
+    for i in range(0, len(playlist_ids), 50):
+        batch = playlist_ids[i:i + 50]
+        params = urllib.parse.urlencode({
+            "part": "snippet,status",
+            "id": ",".join(batch),
+            "fields": "items(id,snippet/channelTitle,status/privacyStatus)",
+            "key": YT_API_KEY,
+        })
+        url = f"https://www.googleapis.com/youtube/v3/playlists?{params}"
+        try:
+            with urllib.request.urlopen(url, timeout=30) as resp:
+                body = json.loads(resp.read())
+        except Exception as e:
+            print(f"  [yt-api] playlists.list error: {e}", file=sys.stderr)
+            continue
+        for item in body.get("items", []):
+            pid_map[item["id"]] = {
+                "creator": item.get("snippet", {}).get("channelTitle", ""),
+                "privacy": item.get("status", {}).get("privacyStatus", ""),
+            }
+    return pid_map
+
+
 def run_playlist_metadata_pass(data: dict) -> bool:
     """Backfill playlist_creator and privacy_status via YouTube Data API v3.
 
-    Uses playlists.list(part="snippet,status") — up to 50 IDs per call.
+    Supports two modes (checked in order):
+      1. YT_API_KEY env var — simple API key, no libraries needed (works in CI)
+      2. .env/yt_client_secrets.json — OAuth (local, needs google-api-python-client)
     WL and Liked Videos are auto-set (API blocks them).
     Modifies data in-place. Returns True if anything changed.
     """
-    svc = _get_youtube_service()
-
     changed = False
 
     # Collect playlists missing metadata (skip WL/Liked for now)
@@ -636,34 +720,37 @@ def run_playlist_metadata_pass(data: dict) -> bool:
         if not p.get("playlist_creator"):
             missing.append(p)
 
-    if svc is None:
-        if not missing:
-            return changed
-        # No API — can't fetch. Still try WL/Liked from existing data.
-        return _auto_set_wl_liked_creator(data, changed)
-
     if missing:
         print(f"\n[playlist metadata] {len(missing)} playlists missing creator — "
               f"fetching from YouTube API...")
 
-        # Batch fetch
         pid_map: dict[str, dict] = {}
         ids = [p["playlist_id"] for p in missing]
-        for i in range(0, len(ids), 50):
-            batch = ids[i:i + 50]
-            try:
-                resp = svc.playlists().list(
-                    part="snippet,status",
-                    id=",".join(batch),
-                ).execute()
-            except Exception as e:
-                print(f"  [yt-api] playlists.list error: {e}", file=sys.stderr)
-                continue
-            for item in resp.get("items", []):
-                pid_map[item["id"]] = {
-                    "creator": item.get("snippet", {}).get("channelTitle", ""),
-                    "privacy": item.get("status", {}).get("privacyStatus", ""),
-                }
+
+        # Try API key first
+        if YT_API_KEY:
+            pid_map = _fetch_playlist_metadata_api_key(ids)
+
+        # OAuth fallback for any not resolved by API key
+        if len(pid_map) < len(ids):
+            svc = _get_youtube_service()
+            if svc is not None:
+                remaining = [pid for pid in ids if pid not in pid_map]
+                for i in range(0, len(remaining), 50):
+                    batch = remaining[i:i + 50]
+                    try:
+                        resp = svc.playlists().list(
+                            part="snippet,status",
+                            id=",".join(batch),
+                        ).execute()
+                    except Exception as e:
+                        print(f"  [yt-api] playlists.list error: {e}", file=sys.stderr)
+                        continue
+                    for item in resp.get("items", []):
+                        pid_map[item["id"]] = {
+                            "creator": item.get("snippet", {}).get("channelTitle", ""),
+                            "privacy": item.get("status", {}).get("privacyStatus", ""),
+                        }
 
         # Apply
         count = 0
