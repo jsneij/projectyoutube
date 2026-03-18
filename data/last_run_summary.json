@@ -1,20 +1,35 @@
 {
-  "run_at": "2026-03-17T18:25:54.471338+00:00",
+  "run_at": "2026-03-18T06:43:26.719201+00:00",
   "is_first_run": false,
   "enrich_mode": false,
-  "playlists_new": [],
+  "playlists_new": [
+    {
+      "playlist_id": "PLiWBEZWrNsNinnrJuL3H-beBWXbpHPTZL",
+      "title": "GitHub",
+      "video_count": 1
+    }
+  ],
   "playlists_deleted": [],
   "playlists_updated": [
     {
-      "playlist_id": "WL",
-      "title": "Watch later",
+      "playlist_id": "PLBS8yOLcZ_edW-0EcbD3fHnGK2kaFKJdI",
+      "title": "Arkham Horror: The Card Game",
       "videos_added": [
-        "OYspXXQbPko"
+        "mdqD8AsDtOs",
+        "WUbBTqEHlz8"
       ],
-      "videos_removed": []
+      "videos_removed": [
+        "go_P3lliv6s",
+        "R8TWKlzJ-lA",
+        "HXVW84pX4Z4"
+      ]
     }
   ],
   "playlists_unchanged": [
+    {
+      "playlist_id": "WL",
+      "title": "Watch later"
+    },
     {
       "playlist_id": "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1",
       "title": "AI Claude"
@@ -228,10 +243,6 @@
       "title": "How To Win | ARKHAM HORROR: THE CARD GAME"
     },
     {
-      "playlist_id": "PLBS8yOLcZ_edW-0EcbD3fHnGK2kaFKJdI",
-      "title": "Arkham Horror: The Card Game"
-    },
-    {
       "playlist_id": "PLDZBtgxhRpkylUVA3p8LsdyACtWHgAlfY",
       "title": "Tutorial Arkham Horror LCG en Español"
     },
@@ -404,7 +415,7 @@
       "title": "Philosophy"
     }
   ],
-  "total_playlists": 98,
+  "total_playlists": 99,
   "total_videos": 2919,
-  "duration_seconds": 217.2
+  "duration_seconds": 216.4
 }
