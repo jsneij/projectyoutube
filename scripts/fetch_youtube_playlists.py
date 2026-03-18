@@ -458,8 +458,8 @@ def _enrich_via_api(svc, video_ids: list[str]) -> dict[str, dict]:
 
 def _fetch_playlist_added_dates_api_key(playlist_id: str) -> dict[str, str]:
     """Fetch added_to_playlist dates using simple YT_API_KEY (no OAuth needed).
-    Uses playlistItems.list — works for public/unlisted playlists.
-    Returns {video_id: "YYYY-MM-DD"}."""
+    Uses playlistItems.list — works for public/unlisted playlists only.
+    Returns {video_id: "YYYY-MM-DD"}.  Returns {} on error (e.g. private)."""
     result: dict[str, str] = {}
     page_token = ""
     while True:
@@ -477,8 +477,10 @@ def _fetch_playlist_added_dates_api_key(playlist_id: str) -> dict[str, str]:
             with urllib.request.urlopen(url, timeout=30) as resp:
                 body = json.loads(resp.read())
         except Exception as e:
-            print(f"  [yt-api] playlistItems error for {playlist_id}: {e}",
-                  file=sys.stderr)
+            # 404 = private playlist, don't spam stderr — handled by fallback
+            if "404" not in str(e):
+                print(f"  [yt-api] playlistItems error for {playlist_id}: {e}",
+                      file=sys.stderr)
             break
         for item in body.get("items", []):
             vid = item.get("snippet", {}).get("resourceId", {}).get("videoId", "")
@@ -491,13 +493,35 @@ def _fetch_playlist_added_dates_api_key(playlist_id: str) -> dict[str, str]:
     return result
 
 
+def _fetch_added_dates_ytdlp(playlist_url: str) -> dict[str, str]:
+    """Fetch added_to_playlist dates via yt-dlp full extraction (uses cookies).
+    Works for private playlists.  Returns {video_id: "YYYY-MM-DD"}."""
+    entries = _run(
+        ["--dump-json", "--skip-download", "--ignore-no-formats-error",
+         playlist_url],
+        timeout=FLAT_TIMEOUT * 3,
+    )
+    result: dict[str, str] = {}
+    for e in entries:
+        vid = e.get("id") or e.get("video_id") or ""
+        ts = e.get("timestamp")
+        if vid and ts is not None:
+            try:
+                d = datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d")
+                result[vid] = d
+            except (ValueError, OSError):
+                pass
+    return result
+
+
 def run_added_dates_pass(data: dict) -> bool:
     """Backfill added_to_playlist for any video that is missing it.
 
-    Supports two modes (checked in order):
-      1. YT_API_KEY env var — simple API key, no libraries needed (works in CI)
-      2. .env/yt_client_secrets.json — OAuth (local, needs google-api-python-client)
-    Falls back to innertube HTML scraping for Watch Later (which the API blocks).
+    Tries in order:
+      1. YT_API_KEY (playlistItems.list — public/unlisted playlists only)
+      2. yt-dlp full extraction (uses cookies — works for private playlists)
+      3. OAuth via google-api-python-client (local only)
+    Watch Later uses innertube HTML scraping (API blocks WL).
     Modifies data in-place. Returns True if any dates were written.
     """
     playlists_needing = [
@@ -517,8 +541,11 @@ def run_added_dates_pass(data: dict) -> bool:
 
     any_written = False
 
-    # Standard API pass for non-WL playlists (API key first, then OAuth)
-    non_wl = [p for p in playlists_needing if p["playlist_id"] != "WL"]
+    # ── Non-WL playlists ──────────────────────────────────────────────────
+    non_wl = [p for p in playlists_needing
+              if p["playlist_id"] != "WL" and not p["playlist_id"].startswith("LL")]
+
+    # Pass 1: API key (fast, public/unlisted only)
     if non_wl and YT_API_KEY:
         for playlist in non_wl:
             dates = _fetch_playlist_added_dates_api_key(playlist["playlist_id"])
@@ -532,13 +559,38 @@ def run_added_dates_pass(data: dict) -> bool:
                         v["added_to_playlist"] = d
                         count += 1
             if count:
-                print(f"  {GREEN}{playlist['title']!r}{RESET}: {count} dates")
+                print(f"  {GREEN}{playlist['title']!r}{RESET}: {count} dates (api)")
                 any_written = True
-        # Remove playlists that were fully resolved
         non_wl = [p for p in non_wl
                    if any(not v.get("added_to_playlist") for v in p["videos"])]
 
-    # OAuth fallback for any remaining non-WL playlists
+    # Pass 2: yt-dlp full extraction (private playlists, uses cookies)
+    if non_wl:
+        for playlist in non_wl:
+            url = playlist.get("url", "")
+            if not url:
+                continue
+            missing_count = sum(1 for v in playlist["videos"]
+                                if not v.get("added_to_playlist"))
+            print(f"  [ytdlp] {playlist['title']!r}: fetching {missing_count} "
+                  f"added dates via yt-dlp...")
+            dates = _fetch_added_dates_ytdlp(url)
+            if not dates:
+                continue
+            count = 0
+            for v in playlist["videos"]:
+                if not v.get("added_to_playlist"):
+                    d = dates.get(v["video_id"])
+                    if d:
+                        v["added_to_playlist"] = d
+                        count += 1
+            if count:
+                print(f"  {GREEN}{playlist['title']!r}{RESET}: {count} dates (ytdlp)")
+                any_written = True
+        non_wl = [p for p in non_wl
+                   if any(not v.get("added_to_playlist") for v in p["videos"])]
+
+    # Pass 3: OAuth fallback for any still-unresolved
     if non_wl:
         svc = _get_youtube_service()
         if svc is not None:
@@ -554,7 +606,7 @@ def run_added_dates_pass(data: dict) -> bool:
                             v["added_to_playlist"] = d
                             count += 1
                 if count:
-                    print(f"  {GREEN}{playlist['title']!r}{RESET}: {count} dates")
+                    print(f"  {GREEN}{playlist['title']!r}{RESET}: {count} dates (oauth)")
                     any_written = True
 
     # Innertube fallback for Watch Later
@@ -873,14 +925,16 @@ def parse_video(flat: dict, full: dict | None, position: int) -> dict:
 def _playlist_meta_from_entries(flat_entries: list[dict]) -> dict:
     for e in flat_entries:
         if e.get("playlist_channel") or e.get("playlist_uploader"):
+            creator = e.get("playlist_channel") or e.get("playlist_uploader")
             return {
-                "description":   e.get("playlist_description"),
-                "channel":       e.get("playlist_channel") or e.get("playlist_uploader"),
-                "channel_id":    (e.get("playlist_channel_id") or
-                                  e.get("playlist_uploader_id")),
-                "thumbnail":     None,
-                "view_count":    None,
-                "modified_date": None,
+                "description":      e.get("playlist_description"),
+                "channel":          creator,
+                "channel_id":       (e.get("playlist_channel_id") or
+                                     e.get("playlist_uploader_id")),
+                "playlist_creator": creator,
+                "thumbnail":        None,
+                "view_count":       None,
+                "modified_date":    None,
             }
     return {}
 
