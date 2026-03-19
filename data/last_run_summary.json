@@ -1,22 +1,39 @@
 {
-  "run_at": "2026-03-19T06:13:55.124985+00:00",
+  "run_at": "2026-03-19T22:18:13.892203+00:00",
   "is_first_run": false,
   "enrich_mode": false,
   "playlists_new": [],
   "playlists_deleted": [],
-  "playlists_updated": [],
+  "playlists_updated": [
+    {
+      "playlist_id": "WL",
+      "title": "Watch later",
+      "videos_added": [
+        "X5zTCgPN_D4"
+      ],
+      "videos_removed": []
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNgL17W3ifp7yltUA3Q_qiDo",
+      "title": "Notion",
+      "videos_added": [
+        "LnyEUabe7Jg"
+      ],
+      "videos_removed": []
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1",
+      "title": "AI Claude",
+      "videos_added": [
+        "Ko7_tC1fMMM"
+      ],
+      "videos_removed": []
+    }
+  ],
   "playlists_unchanged": [
     {
       "playlist_id": "PLiWBEZWrNsNinnrJuL3H-beBWXbpHPTZL",
       "title": "GitHub"
-    },
-    {
-      "playlist_id": "WL",
-      "title": "Watch later"
-    },
-    {
-      "playlist_id": "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1",
-      "title": "AI Claude"
     },
     {
       "playlist_id": "PLiWBEZWrNsNhBZhoERiuS9wFPtQIY8sxk",
@@ -335,10 +352,6 @@
       "title": "Climate Emergency"
     },
     {
-      "playlist_id": "PLiWBEZWrNsNgL17W3ifp7yltUA3Q_qiDo",
-      "title": "Notion"
-    },
-    {
       "playlist_id": "PL0oKfTSlfZtfQIGeEJofPttpwFpeNdZWP",
       "title": "EXCELISFUN PIVOT TABLES"
     },
@@ -404,6 +417,6 @@
     }
   ],
   "total_playlists": 99,
-  "total_videos": 2919,
-  "duration_seconds": 230.6
+  "total_videos": 2922,
+  "duration_seconds": 271.3
 }

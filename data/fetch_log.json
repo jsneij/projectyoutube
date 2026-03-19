@@ -1,19 +1,13 @@
 {
-  "fetched_at": "2026-03-19T06:17:45.736060+00:00",
+  "fetched_at": "2026-03-19T22:22:45.149597+00:00",
   "total_playlists": 99,
-  "total_videos": 2919,
+  "total_videos": 2922,
   "playlists": {
-    "PLiWBEZWrNsNinnrJuL3H-beBWXbpHPTZL": {
-      "title": "GitHub",
-      "video_count": 1,
-      "video_ids": [
-        "e9lnsKot_SQ"
-      ]
-    },
     "WL": {
       "title": "Watch later",
-      "video_count": 496,
+      "video_count": 497,
       "video_ids": [
+        "X5zTCgPN_D4",
         "OYspXXQbPko",
         "qHdm-BFsuzQ",
         "7y_hbz6loEo",
@@ -512,9 +506,17 @@
         "ED8lTm9oZ6w"
       ]
     },
+    "PLiWBEZWrNsNgL17W3ifp7yltUA3Q_qiDo": {
+      "title": "Notion",
+      "video_count": 2,
+      "video_ids": [
+        "XLtFPzBaP9I",
+        "LnyEUabe7Jg"
+      ]
+    },
     "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1": {
       "title": "AI Claude",
-      "video_count": 13,
+      "video_count": 14,
       "video_ids": [
         "CEvIs9y1uog",
         "ntDIxaeo3Wg",
@@ -528,7 +530,15 @@
         "We7BZVKbCVw",
         "eh8bcBIAAFo",
         "wQ0duoTeAAU",
-        "4u94juYwLLM"
+        "4u94juYwLLM",
+        "Ko7_tC1fMMM"
+      ]
+    },
+    "PLiWBEZWrNsNinnrJuL3H-beBWXbpHPTZL": {
+      "title": "GitHub",
+      "video_count": 1,
+      "video_ids": [
+        "e9lnsKot_SQ"
       ]
     },
     "PLiWBEZWrNsNhBZhoERiuS9wFPtQIY8sxk": {
@@ -2707,13 +2717,6 @@
         "Bop8x24G_o0",
         "NaK6cYlZXes",
         "meSqn5seEZ8"
-      ]
-    },
-    "PLiWBEZWrNsNgL17W3ifp7yltUA3Q_qiDo": {
-      "title": "Notion",
-      "video_count": 1,
-      "video_ids": [
-        "XLtFPzBaP9I"
       ]
     },
     "PL0oKfTSlfZtfQIGeEJofPttpwFpeNdZWP": {
