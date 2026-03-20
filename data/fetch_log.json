@@ -1,7 +1,7 @@
 {
-  "fetched_at": "2026-03-19T22:22:45.149597+00:00",
+  "fetched_at": "2026-03-20T06:11:24.992585+00:00",
   "total_playlists": 99,
-  "total_videos": 2922,
+  "total_videos": 2921,
   "playlists": {
     "WL": {
       "title": "Watch later",
@@ -2128,9 +2128,8 @@
     },
     "PLBS8yOLcZ_edW-0EcbD3fHnGK2kaFKJdI": {
       "title": "Arkham Horror: The Card Game",
-      "video_count": 46,
+      "video_count": 45,
       "video_ids": [
-        "e0I3kYeWMcs",
         "IvEB0DbFlhE",
         "9NDhW6bPStE",
         "_QiVH5rqwKo",
