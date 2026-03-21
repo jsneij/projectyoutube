@@ -1,24 +1,20 @@
 {
-  "run_at": "2026-03-20T06:07:48.689354+00:00",
+  "run_at": "2026-03-21T05:32:30.407141+00:00",
   "is_first_run": false,
   "enrich_mode": false,
   "playlists_new": [],
   "playlists_deleted": [],
   "playlists_updated": [
     {
-      "playlist_id": "PLBS8yOLcZ_edW-0EcbD3fHnGK2kaFKJdI",
-      "title": "Arkham Horror: The Card Game",
-      "videos_added": [],
-      "videos_removed": [
-        "e0I3kYeWMcs"
-      ]
+      "playlist_id": "WL",
+      "title": "Watch later",
+      "videos_added": [
+        "IWTnJUYC1fQ"
+      ],
+      "videos_removed": []
     }
   ],
   "playlists_unchanged": [
-    {
-      "playlist_id": "WL",
-      "title": "Watch later"
-    },
     {
       "playlist_id": "PLiWBEZWrNsNgL17W3ifp7yltUA3Q_qiDo",
       "title": "Notion"
@@ -240,6 +236,10 @@
       "title": "How To Win | ARKHAM HORROR: THE CARD GAME"
     },
     {
+      "playlist_id": "PLBS8yOLcZ_edW-0EcbD3fHnGK2kaFKJdI",
+      "title": "Arkham Horror: The Card Game"
+    },
+    {
       "playlist_id": "PLDZBtgxhRpkylUVA3p8LsdyACtWHgAlfY",
       "title": "Tutorial Arkham Horror LCG en Español"
     },
@@ -409,6 +409,6 @@
     }
   ],
   "total_playlists": 99,
-  "total_videos": 2921,
-  "duration_seconds": 216.3
+  "total_videos": 2922,
+  "duration_seconds": 218.1
 }
