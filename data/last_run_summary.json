@@ -1,5 +1,5 @@
 {
-  "run_at": "2026-03-23T06:53:40.545488+00:00",
+  "run_at": "2026-03-24T06:42:54.845742+00:00",
   "is_first_run": false,
   "enrich_mode": false,
   "playlists_new": [],
@@ -9,7 +9,7 @@
       "playlist_id": "WL",
       "title": "Watch later",
       "videos_added": [
-        "omWrISLBv9o"
+        "oEc94V_wE7E"
       ],
       "videos_removed": []
     }
@@ -409,6 +409,6 @@
     }
   ],
   "total_playlists": 99,
-  "total_videos": 2924,
-  "duration_seconds": 223.8
+  "total_videos": 2925,
+  "duration_seconds": 203.0
 }
