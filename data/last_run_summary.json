@@ -1,19 +1,39 @@
 {
-  "run_at": "2026-03-27T06:50:31.595963+00:00",
+  "run_at": "2026-03-28T06:13:02.790700+00:00",
   "is_first_run": false,
   "enrich_mode": false,
   "playlists_new": [],
   "playlists_deleted": [],
-  "playlists_updated": [],
-  "playlists_unchanged": [
-    {
-      "playlist_id": "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1",
-      "title": "AI Claude"
-    },
+  "playlists_updated": [
     {
       "playlist_id": "WL",
-      "title": "Watch later"
+      "title": "Watch later",
+      "videos_added": [
+        "bLnfjpf7-os",
+        "MJW8d5RTxwI"
+      ],
+      "videos_removed": []
     },
+    {
+      "playlist_id": "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1",
+      "title": "AI Claude",
+      "videos_added": [
+        "-ttbXFWb8mg",
+        "63Kr3HFECHM",
+        "nVnxG10D5W0"
+      ],
+      "videos_removed": []
+    },
+    {
+      "playlist_id": "LL",
+      "title": "Liked videos",
+      "videos_added": [
+        "2MbtNy2lxdY"
+      ],
+      "videos_removed": []
+    }
+  ],
+  "playlists_unchanged": [
     {
       "playlist_id": "PLiWBEZWrNsNgL17W3ifp7yltUA3Q_qiDo",
       "title": "Notion"
@@ -61,10 +81,6 @@
     {
       "playlist_id": "PLiWBEZWrNsNi-uipzseTXOAFfS3en2TxD",
       "title": "Health"
-    },
-    {
-      "playlist_id": "LL",
-      "title": "Liked videos"
     },
     {
       "playlist_id": "PLiWBEZWrNsNjYkMe9eaaMmYSSzb6WJVEx",
@@ -404,6 +420,6 @@
     }
   ],
   "total_playlists": 99,
-  "total_videos": 2928,
-  "duration_seconds": 219.8
+  "total_videos": 2934,
+  "duration_seconds": 275.1
 }
