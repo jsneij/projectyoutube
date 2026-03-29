@@ -1,39 +1,23 @@
 {
-  "run_at": "2026-03-28T06:13:02.790700+00:00",
+  "run_at": "2026-03-29T06:46:43.049113+00:00",
   "is_first_run": false,
   "enrich_mode": false,
   "playlists_new": [],
   "playlists_deleted": [],
-  "playlists_updated": [
+  "playlists_updated": [],
+  "playlists_unchanged": [
     {
       "playlist_id": "WL",
-      "title": "Watch later",
-      "videos_added": [
-        "bLnfjpf7-os",
-        "MJW8d5RTxwI"
-      ],
-      "videos_removed": []
+      "title": "Watch later"
     },
     {
       "playlist_id": "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1",
-      "title": "AI Claude",
-      "videos_added": [
-        "-ttbXFWb8mg",
-        "63Kr3HFECHM",
-        "nVnxG10D5W0"
-      ],
-      "videos_removed": []
+      "title": "AI Claude"
     },
     {
       "playlist_id": "LL",
-      "title": "Liked videos",
-      "videos_added": [
-        "2MbtNy2lxdY"
-      ],
-      "videos_removed": []
-    }
-  ],
-  "playlists_unchanged": [
+      "title": "Liked videos"
+    },
     {
       "playlist_id": "PLiWBEZWrNsNgL17W3ifp7yltUA3Q_qiDo",
       "title": "Notion"
@@ -421,5 +405,5 @@
   ],
   "total_playlists": 99,
   "total_videos": 2934,
-  "duration_seconds": 275.1
+  "duration_seconds": 217.7
 }
