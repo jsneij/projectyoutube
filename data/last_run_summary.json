@@ -1,36 +1,23 @@
 {
-  "run_at": "2026-03-30T08:11:53.355267+00:00",
+  "run_at": "2026-03-31T06:58:04.609072+00:00",
   "is_first_run": false,
   "enrich_mode": false,
   "playlists_new": [],
   "playlists_deleted": [],
-  "playlists_updated": [
+  "playlists_updated": [],
+  "playlists_unchanged": [
     {
       "playlist_id": "WL",
-      "title": "Watch later",
-      "videos_added": [
-        "GSsQzj5MmTA"
-      ],
-      "videos_removed": []
+      "title": "Watch later"
     },
     {
       "playlist_id": "LL",
-      "title": "Liked videos",
-      "videos_added": [
-        "opl5AOxIDHo"
-      ],
-      "videos_removed": []
+      "title": "Liked videos"
     },
     {
       "playlist_id": "PLiWBEZWrNsNhp3T5tIRURbyXn4a1G6HK1",
-      "title": "AI",
-      "videos_added": [
-        "DIa0MYJzM5I"
-      ],
-      "videos_removed": []
-    }
-  ],
-  "playlists_unchanged": [
+      "title": "AI"
+    },
     {
       "playlist_id": "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1",
       "title": "AI Claude"
@@ -418,5 +405,5 @@
   ],
   "total_playlists": 99,
   "total_videos": 2937,
-  "duration_seconds": 376.4
+  "duration_seconds": 230.4
 }
