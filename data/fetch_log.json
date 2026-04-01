@@ -1,12 +1,41 @@
 {
-  "fetched_at": "2026-03-31T07:01:54.964940+00:00",
+  "fetched_at": "2026-04-01T08:09:13.735404+00:00",
   "total_playlists": 99,
-  "total_videos": 2937,
+  "total_videos": 2939,
   "playlists": {
+    "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1": {
+      "title": "AI Claude",
+      "video_count": 22,
+      "video_ids": [
+        "CEvIs9y1uog",
+        "ntDIxaeo3Wg",
+        "QoQBzR1NIqI",
+        "bjdBVZa66oU",
+        "Ii99RU3mOJM",
+        "ZlDnsf_DOzg",
+        "Y09u_S3w2c8",
+        "F4zSxfBe5R0",
+        "6-D3fg3JUL4",
+        "We7BZVKbCVw",
+        "eh8bcBIAAFo",
+        "wQ0duoTeAAU",
+        "4u94juYwLLM",
+        "Ko7_tC1fMMM",
+        "4CiCwvAA5FI",
+        "91AJ0cpgLlQ",
+        "uULvhQrKB_c",
+        "-9uojnGzcJo",
+        "-ttbXFWb8mg",
+        "63Kr3HFECHM",
+        "nVnxG10D5W0",
+        "dYG8JxtSgmM"
+      ]
+    },
     "WL": {
       "title": "Watch later",
-      "video_count": 503,
+      "video_count": 504,
       "video_ids": [
+        "xgCmU7Uj_O8",
         "GSsQzj5MmTA",
         "bLnfjpf7-os",
         "MJW8d5RTxwI",
@@ -726,33 +755,6 @@
         "EdZWPB1fIJc",
         "ZlDnsf_DOzg",
         "DIa0MYJzM5I"
-      ]
-    },
-    "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1": {
-      "title": "AI Claude",
-      "video_count": 21,
-      "video_ids": [
-        "CEvIs9y1uog",
-        "ntDIxaeo3Wg",
-        "QoQBzR1NIqI",
-        "bjdBVZa66oU",
-        "Ii99RU3mOJM",
-        "ZlDnsf_DOzg",
-        "Y09u_S3w2c8",
-        "F4zSxfBe5R0",
-        "6-D3fg3JUL4",
-        "We7BZVKbCVw",
-        "eh8bcBIAAFo",
-        "wQ0duoTeAAU",
-        "4u94juYwLLM",
-        "Ko7_tC1fMMM",
-        "4CiCwvAA5FI",
-        "91AJ0cpgLlQ",
-        "uULvhQrKB_c",
-        "-9uojnGzcJo",
-        "-ttbXFWb8mg",
-        "63Kr3HFECHM",
-        "nVnxG10D5W0"
       ]
     },
     "PLiWBEZWrNsNgL17W3ifp7yltUA3Q_qiDo": {
