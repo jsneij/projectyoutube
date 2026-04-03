@@ -207,7 +207,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     <span id="topbar-fetch" style="font-family:var(--mono);font-size:10px;color:var(--fg3)"><span style="color:var(--accent)">last fetch</span> <span id="topbar-fetch-date"></span></span>
     <span id="topbar-unenriched" style="font-family:var(--mono);font-size:10px;color:var(--fg3);display:none"><span class="sep" style="display:inline-block;width:1px;height:14px;background:var(--border2);vertical-align:middle;margin:0 12px"></span><span id="unenriched-count" style="color:var(--accent)"></span> <a id="enrich-btn" href="https://github.com/jsneij/projectyoutube/actions/workflows/enrich_missing_10.yml" target="_blank" style="display:none;margin-left:6px;font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:var(--accent-dim);color:var(--accent);text-decoration:none;border:1px solid var(--accent);cursor:pointer">enrich</a></span>
     <span id="topbar-transcripts" style="font-family:var(--mono);font-size:10px;color:var(--fg3);display:none"><span class="sep" style="display:inline-block;width:1px;height:14px;background:var(--border2);vertical-align:middle;margin:0 12px"></span><span id="transcript-count" style="color:#4caf50"></span> <a id="transcript-btn" href="#" style="display:none;margin-left:6px;font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(76,175,80,0.10);color:#4caf50;text-decoration:none;border:1px solid #4caf50;cursor:pointer">paste ids and run</a></span>
-    <span style="margin-left:auto"><a href="https://github.com/jsneij/projectyoutube/actions/workflows/fetch_youtube_data.yml" target="_blank" style="font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:var(--bg3);color:var(--fg3);text-decoration:none;border:1px solid var(--border2);cursor:pointer">fetch</a></span>
+    <span style="margin-left:auto;display:flex;align-items:center;gap:8px"><a href="https://github.com/jsneij/projectyoutube/actions/workflows/fetch_youtube_data.yml" target="_blank" style="font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:var(--bg3);color:var(--fg3);text-decoration:none;border:1px solid var(--border2);cursor:pointer">fetch</a><span id="topbar-deployed" style="font-family:var(--mono);font-size:9px;color:var(--fg3)"></span></span>
   </div>
 
   <div class="stats-row" id="stats-row"></div>
@@ -245,6 +245,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
   try {
     const resp = await fetch('../data/youtube_playlists_compact.json');
     if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    const lastMod = resp.headers.get('Last-Modified');
     raw = await resp.json();
   } catch (err) {
     loadingEl.style.display = 'none';
@@ -376,11 +377,17 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
   document.getElementById('topbar-user').textContent = meta.youtube_user ? `@${meta.youtube_user}` : '';
   document.getElementById('topbar-source').textContent = meta.source || '';
+  const pad = n => String(n).padStart(2, '0');
   if (meta.last_updated) {
     const d = new Date(meta.last_updated);
-    const pad = n => String(n).padStart(2, '0');
     const fmt = `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     document.getElementById('topbar-fetch-date').textContent = fmt;
+  }
+  if (lastMod) {
+    const d = new Date(lastMod);
+    if (!isNaN(d)) {
+      document.getElementById('topbar-deployed').textContent = `deployed ${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
   }
 
   const unenrichedCount = playlists.reduce((s, p) => s + p.vids.filter(v => !v.enriched).length, 0);
@@ -718,7 +725,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       let tCell = '';
       if (v.transcript) {
         const tUrl = `../TRANSCRIPTS/${encodeURIComponent(v.transcript_file || v.id + '.txt')}`;
-        tCell = `<td style="text-align:center"><a href="${tUrl}" target="_blank" title="View transcript" style="color:#4caf50;text-decoration:none;font-size:14px">&#10003;</a></td>`;
+        tCell = `<td style="text-align:center"><a href="${tUrl}" target="_blank" title="View transcript" style="color:#c0392b;text-decoration:none;display:inline-flex;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></td>`;
       } else if (v.enriched) {
         const checked = transcriptSel[v.id] ? ' checked' : '';
         tCell = `<td style="text-align:center"><input type="radio" class="transcript-cb" data-vid="${v.id}" data-ptitle="${escHtml(v._playlistTitle)}"${checked}></td>`;
@@ -849,7 +856,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       let tCell = '';
       if (v.transcript) {
         const tUrl = `../TRANSCRIPTS/${encodeURIComponent(v.transcript_file || v.id + '.txt')}`;
-        tCell = `<td style="text-align:center"><a href="${tUrl}" target="_blank" title="View transcript" style="color:#4caf50;text-decoration:none;font-size:14px">&#10003;</a></td>`;
+        tCell = `<td style="text-align:center"><a href="${tUrl}" target="_blank" title="View transcript" style="color:#c0392b;text-decoration:none;display:inline-flex;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></td>`;
       } else if (v.enriched) {
         const checked = transcriptSel[v.id] ? ' checked' : '';
         tCell = `<td style="text-align:center"><input type="radio" class="transcript-cb" data-vid="${v.id}" data-ptitle="${escHtml(p.title)}"${checked}></td>`;
