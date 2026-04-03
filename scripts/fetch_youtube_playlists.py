@@ -1114,13 +1114,14 @@ def _safe_title(title: str) -> str:
     return s or 'untitled'
 
 
-def _transcript_filename(video_id: str, title: str, channel: str = "") -> str:
-    """Build transcript filename: '{channel} - {video_id} {title}.txt'."""
+def _transcript_filename(video_id: str, title: str, channel: str = "",
+                         upload_date: str = "") -> str:
+    """Build transcript filename: '{channel} - {date} - {video_id} - {title}.txt'."""
     ch = _safe_title(channel) if channel else ""
     ti = _safe_title(title)
-    if ch:
-        return f"{ch} - {video_id} {ti}.txt"
-    return f"{video_id} {ti}.txt"
+    date = upload_date[:10] if upload_date else ""
+    parts = [p for p in [ch, date, video_id, ti] if p]
+    return " - ".join(parts) + ".txt"
 
 
 def _parse_ts_seconds(ts: str) -> int:
@@ -1134,12 +1135,10 @@ def _parse_ts_seconds(ts: str) -> int:
 
 
 def _fmt_ts(seconds: int) -> str:
-    """Format seconds as [H:MM:SS] or [M:SS]."""
+    """Format seconds as [HH:MM:SS]."""
     h, r = divmod(seconds, 3600)
     m, s = divmod(r, 60)
-    if h > 0:
-        return f"[{h}:{m:02d}:{s:02d}]"
-    return f"[{m}:{s:02d}]"
+    return f"[{h:02d}:{m:02d}:{s:02d}]"
 
 
 def _srt_to_text(content: str) -> str:
@@ -1222,7 +1221,8 @@ def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
 
     for vid_id in requested:
         video = vid_lookup[vid_id]
-        fname = _transcript_filename(vid_id, video.get("title", ""), video.get("channel", ""))
+        fname = _transcript_filename(vid_id, video.get("title", ""), video.get("channel", ""),
+                                     video.get("upload_date", ""))
         txt_path = TRANSCRIPTS_DIR / fname
 
         # Also check for any existing file containing this video_id
