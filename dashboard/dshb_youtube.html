@@ -245,7 +245,6 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
   try {
     const resp = await fetch('../data/youtube_playlists_compact.json');
     if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
-    const lastMod = resp.headers.get('Last-Modified');
     raw = await resp.json();
   } catch (err) {
     loadingEl.style.display = 'none';
@@ -383,12 +382,15 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     const fmt = `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     document.getElementById('topbar-fetch-date').textContent = fmt;
   }
-  if (lastMod) {
-    const d = new Date(lastMod);
-    if (!isNaN(d)) {
-      document.getElementById('topbar-deployed').textContent = `deployed ${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    }
-  }
+  fetch('https://api.github.com/repos/jsneij/projectyoutube/commits/main', { headers: { Accept: 'application/vnd.github.v3+json' } })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if (!data) return;
+      const d = new Date(data.commit.committer.date);
+      if (!isNaN(d)) {
+        document.getElementById('topbar-deployed').textContent = `deployed ${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      }
+    }).catch(() => {});
 
   const unenrichedCount = playlists.reduce((s, p) => s + p.vids.filter(v => !v.enriched).length, 0);
 
