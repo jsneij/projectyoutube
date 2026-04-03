@@ -917,7 +917,7 @@ def parse_video(flat: dict, full: dict | None, position: int) -> dict:
         "was_live":            enr.get("was_live") if enr else None,
         "categories":          enr.get("categories") if enr else None,
         "tags":                enr.get("tags") if enr else None,
-        "subtitles_available": bool(enr.get("subtitles")) if enr else None,
+        "subtitles_available": bool(enr.get("subtitles") or enr.get("automatic_captions")) if enr else None,
         "language":            enr.get("language") if enr else None,
         # ── Meta ──────────────────────────────────────────────────────────
         "enriched":            enr is not None,
@@ -1281,7 +1281,7 @@ def run_enrichment(data: dict) -> dict:
                     "was_live":            full.get("was_live"),
                     "categories":          full.get("categories"),
                     "tags":                full.get("tags"),
-                    "subtitles_available": bool(full.get("subtitles")),
+                    "subtitles_available": bool(full.get("subtitles") or full.get("automatic_captions")),
                     "language":            full.get("language"),
                     "enriched":            True,
                 }
