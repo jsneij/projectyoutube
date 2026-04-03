@@ -216,14 +216,10 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     <input type="text" id="search" placeholder="search playlists and videos...">
     <button class="search-clear" id="search-clear">✕</button>
     <span class="search-mode" id="search-mode"></span>
+    <button id="toggle-locked" title="Show only locked/members-only videos" style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:3px;background:var(--bg3);color:var(--fg3);border:1px solid var(--border2);cursor:pointer;margin-left:8px;white-space:nowrap">locked</button>
+    <button id="toggle-transcripts" title="Show only videos with transcripts" style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:3px;background:var(--bg3);color:var(--fg3);border:1px solid var(--border2);cursor:pointer;margin-left:4px;white-space:nowrap">transcripts</button>
     <span id="clear-sel" style="display:none;cursor:pointer;color:var(--accent);font-family:var(--mono);font-size:11px;margin-left:12px;text-decoration:underline">clear selection</span>
-    <label title="Show only videos with transcripts (fetched or selected)" style="font-family:var(--mono);font-size:11px;color:var(--fg2);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;margin-left:auto">
-      <input type="checkbox" id="filter-transcripts" style="accent-color:var(--accent)"> &nbsp;transcripts
-    </label>
-    <label title="Hide members-only or unavailable videos. Search &quot;#locked&quot; to find them all." style="font-family:var(--mono);font-size:11px;color:var(--fg2);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;margin-left:8px">
-      <input type="checkbox" id="skip-locked" style="accent-color:var(--accent)"> &nbsp;skip 🔒
-    </label>
-    <label title="Hide playlists with 0 videos." style="font-family:var(--mono);font-size:11px;color:var(--fg2);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;margin-left:8px">
+    <label title="Hide playlists with 0 videos." style="font-family:var(--mono);font-size:11px;color:var(--fg2);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;margin-left:auto">
       <input type="checkbox" id="skip-zero" checked style="accent-color:var(--accent)"> &nbsp;skip 0
     </label>
   </div>
@@ -314,9 +310,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
   let searchTerm = '';
   let searchSelectedPids = new Set();
   let filterMin = 0;
-  let skipLocked = false;
   let skipZero = true;
-  let filterTranscripts = false;
 
   // Video sort state (per detail panel)
   let vidSortCol = 'fetched_at';
@@ -447,7 +441,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
   function renderStats() {
     const visPlaylists = playlists.filter(p => (!skipZero || p.n > 0));
-    const visVids = visPlaylists.flatMap(p => skipLocked ? p.vids.filter(v => !v.members_only) : p.vids);
+    const visVids = visPlaylists.flatMap(p => p.vids);
     const nPlaylists = visPlaylists.length;
     const nVids = visVids.length;
     const nDur = visVids.reduce((s, v) => s + v.duration_seconds, 0);
@@ -492,7 +486,6 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
         const matchedVidIdx = [];
         for (let i = 0; i < p.vids.length; i++) {
           const v = p.vids[i];
-          if (skipLocked && v.members_only) continue;
           const isLocked = term === '#locked' && v.members_only;
           const isTranscript = term === '#transcripts' && (v.transcript || transcriptSel[v.id]);
           if (isLocked || isTranscript || v.title.toLowerCase().includes(term) || v.channel.toLowerCase().includes(term)) {
@@ -573,7 +566,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       const titleDisplay = term ? highlight(p.title, searchTerm.trim()) : escHtml(p.title);
       const matchBadge = hasVidMatch && term ? `<span class="match-count">${vidMatchCount} vid${vidMatchCount > 1 ? 's' : ''}</span>` : '';
 
-      const visVids = skipLocked ? p.vids.filter(v => !v.members_only) : p.vids;
+      const visVids = p.vids;
       const visN = visVids.length;
       const visD = visVids.reduce((s, v) => s + v.duration_seconds, 0);
 
@@ -673,8 +666,6 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     let allMatched = [];
     for (const p of playlists) {
       for (const v of p.vids) {
-        if (skipLocked && v.members_only) continue;
-        if (filterTranscripts && !v.transcript && !transcriptSel[v.id]) continue;
         const isLocked = term === '#locked' && v.members_only;
         const isTranscript = term === '#transcripts' && (v.transcript || transcriptSel[v.id]);
         if (isLocked || isTranscript || v.title.toLowerCase().includes(term) || v.channel.toLowerCase().includes(term)) {
@@ -797,8 +788,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     if (!p) { panel.innerHTML = ''; return; }
 
     const matchedSet = new Set(videoMatches[p.id] || []);
-    let vidsFiltered = skipLocked ? p.vids.filter(v => !v.members_only) : [...p.vids];
-    if (filterTranscripts) vidsFiltered = vidsFiltered.filter(v => v.transcript || transcriptSel[v.id]);
+    let vidsFiltered = [...p.vids];
     const vidsToShow = sortVids(vidsFiltered, matchedSet, term);
 
     const visN = vidsFiltered.length;
@@ -919,17 +909,40 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     renderDetail();
   });
 
-  document.getElementById('skip-locked').addEventListener('change', e => {
-    skipLocked = e.target.checked;
-    renderStats();
+  function setToggleStyle(btn, active, color) {
+    btn.style.background = active ? color : 'var(--bg3)';
+    btn.style.color = active ? '#fff' : 'var(--fg3)';
+    btn.style.borderColor = active ? color : 'var(--border2)';
+  }
+
+  const toggleLockedBtn = document.getElementById('toggle-locked');
+  const toggleTranscriptsBtn = document.getElementById('toggle-transcripts');
+
+  function applyToggle(keyword, btn, color) {
+    const searchEl = document.getElementById('search');
+    const searchClear = document.getElementById('search-clear');
+    const isActive = searchTerm.toLowerCase().trim() === keyword;
+    if (isActive) {
+      searchTerm = '';
+      searchEl.value = '';
+      searchClear.style.display = 'none';
+      setToggleStyle(btn, false, color);
+    } else {
+      searchTerm = keyword;
+      searchEl.value = keyword;
+      searchClear.style.display = 'inline-block';
+      setToggleStyle(btn, true, color);
+    }
+    // Deactivate the other toggle
+    if (btn === toggleLockedBtn) setToggleStyle(toggleTranscriptsBtn, false, '#c0392b');
+    else setToggleStyle(toggleLockedBtn, false, 'var(--fg3)');
+    searchSelectedPids.clear();
     renderTable();
     renderDetail();
-  });
+  }
 
-  document.getElementById('filter-transcripts').addEventListener('change', e => {
-    filterTranscripts = e.target.checked;
-    renderDetail();
-  });
+  toggleLockedBtn.addEventListener('click', () => applyToggle('#locked', toggleLockedBtn, 'var(--fg3)'));
+  toggleTranscriptsBtn.addEventListener('click', () => applyToggle('#transcripts', toggleTranscriptsBtn, '#c0392b'));
 
   document.getElementById('clear-sel').addEventListener('click', () => {
     searchSelectedPids.clear();
@@ -945,6 +958,8 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     searchSelectedPids.clear();
     vidSortCol = 'fetched_at';
     vidSortDir = -1;
+    setToggleStyle(toggleLockedBtn, false, 'var(--fg3)');
+    setToggleStyle(toggleTranscriptsBtn, false, '#c0392b');
     renderTable();
     renderDetail();
   });
@@ -956,6 +971,9 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       searchTerm = e.target.value;
       searchClearBtn.style.display = searchTerm ? 'inline-block' : 'none';
       if (!searchTerm.trim()) searchSelectedPids.clear();
+      // Sync toggle button styles with search content
+      setToggleStyle(toggleLockedBtn, searchTerm.trim().toLowerCase() === '#locked', 'var(--fg3)');
+      setToggleStyle(toggleTranscriptsBtn, searchTerm.trim().toLowerCase() === '#transcripts', '#c0392b');
       renderTable();
       renderDetail();
     }, 150);
