@@ -1124,8 +1124,10 @@ def _transcript_filename(video_id: str, title: str, channel: str = "") -> str:
 
 
 def _srt_to_text(content: str) -> str:
-    """Convert SRT/VTT subtitle content to plain text (strip timestamps, tags)."""
-    lines = []
+    """Convert SRT/VTT subtitle content to clean plain text."""
+    import html
+    seen: set[str] = set()
+    lines: list[str] = []
     for line in content.splitlines():
         line = line.strip()
         if not line:
@@ -1136,10 +1138,12 @@ def _srt_to_text(content: str) -> str:
             continue
         if line.startswith('WEBVTT'):              # VTT header
             continue
-        if re.match(r'^(Kind|Language):', line):   # VTT metadata
+        if re.match(r'^(Kind|Language|NOTE):', line):  # VTT metadata
             continue
         line = re.sub(r'<[^>]+>', '', line)        # strip HTML-like tags
-        if line:
+        line = html.unescape(line)                 # decode &gt; &amp; etc.
+        if line and line not in seen:
+            seen.add(line)
             lines.append(line)
     return '\n'.join(lines)
 
