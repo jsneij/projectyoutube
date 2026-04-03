@@ -219,7 +219,13 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     <button id="toggle-locked" title="Show only locked/members-only videos" style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:3px;background:var(--bg3);color:var(--fg3);border:1px solid var(--border2);cursor:pointer;margin-left:8px;white-space:nowrap">locked</button>
     <button id="toggle-transcripts" title="Show only videos with transcripts" style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:3px;background:var(--bg3);color:var(--fg3);border:1px solid var(--border2);cursor:pointer;margin-left:4px;white-space:nowrap">transcripts</button>
     <span id="clear-sel" style="display:none;cursor:pointer;color:var(--accent);font-family:var(--mono);font-size:11px;margin-left:12px;text-decoration:underline">clear selection</span>
-    <label title="Hide playlists with 0 videos." style="font-family:var(--mono);font-size:11px;color:var(--fg2);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;margin-left:auto">
+    <label title="Show video cover thumbnails" style="font-family:var(--mono);font-size:11px;color:var(--fg2);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;margin-left:auto">
+      <input type="checkbox" id="show-covers" style="accent-color:var(--accent)"> &nbsp;covers
+    </label>
+    <label title="Hide locked/members-only videos" style="font-family:var(--mono);font-size:11px;color:var(--fg2);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;margin-left:8px">
+      <input type="checkbox" id="skip-locked" style="accent-color:var(--accent)"> &nbsp;skip locked
+    </label>
+    <label title="Hide playlists with 0 videos." style="font-family:var(--mono);font-size:11px;color:var(--fg2);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;margin-left:8px">
       <input type="checkbox" id="skip-zero" checked style="accent-color:var(--accent)"> &nbsp;skip 0
     </label>
   </div>
@@ -310,6 +316,8 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
   let searchTerm = '';
   let searchSelectedPids = new Set();
   let filterMin = 0;
+  let skipLocked = false;
+  let showCovers = false;
   let skipZero = true;
 
   // Video sort state (per detail panel)
@@ -441,7 +449,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
   function renderStats() {
     const visPlaylists = playlists.filter(p => (!skipZero || p.n > 0));
-    const visVids = visPlaylists.flatMap(p => p.vids);
+    const visVids = visPlaylists.flatMap(p => skipLocked ? p.vids.filter(v => !v.members_only) : p.vids);
     const nPlaylists = visPlaylists.length;
     const nVids = visVids.length;
     const nDur = visVids.reduce((s, v) => s + v.duration_seconds, 0);
@@ -486,6 +494,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
         const matchedVidIdx = [];
         for (let i = 0; i < p.vids.length; i++) {
           const v = p.vids[i];
+          if (skipLocked && v.members_only) continue;
           const isLocked = term === '#locked' && v.members_only;
           const isTranscript = term === '#transcripts' && (v.transcript || transcriptSel[v.id]);
           if (isLocked || isTranscript || v.title.toLowerCase().includes(term) || v.channel.toLowerCase().includes(term)) {
@@ -566,7 +575,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       const titleDisplay = term ? highlight(p.title, searchTerm.trim()) : escHtml(p.title);
       const matchBadge = hasVidMatch && term ? `<span class="match-count">${vidMatchCount} vid${vidMatchCount > 1 ? 's' : ''}</span>` : '';
 
-      const visVids = p.vids;
+      const visVids = skipLocked ? p.vids.filter(v => !v.members_only) : p.vids;
       const visN = visVids.length;
       const visD = visVids.reduce((s, v) => s + v.duration_seconds, 0);
 
@@ -666,6 +675,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     let allMatched = [];
     for (const p of playlists) {
       for (const v of p.vids) {
+        if (skipLocked && v.members_only) continue;
         const isLocked = term === '#locked' && v.members_only;
         const isTranscript = term === '#transcripts' && (v.transcript || transcriptSel[v.id]);
         if (isLocked || isTranscript || v.title.toLowerCase().includes(term) || v.channel.toLowerCase().includes(term)) {
@@ -688,6 +698,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     const vidCols = [
       { k: '_idx',            l: '#',        w: '40px', align: 'right' },
       { k: '_transcript',     l: 'T',        w: '30px', align: 'center' },
+      ...(showCovers ? [{ k: '_cover', l: '', w: '50px' }] : []),
       { k: 'title',           l: 'title',    w: ''      },
       { k: 'channel',         l: 'channel',  w: '110px' },
       { k: '_playlist',       l: 'playlist', w: '120px' },
@@ -698,7 +709,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
     h += '<table class="vid-table"><thead><tr>';
     for (const c of vidCols) {
-      if (c.k === '_idx' || c.k === '_playlist' || c.k === '_transcript') {
+      if (c.k === '_idx' || c.k === '_playlist' || c.k === '_transcript' || c.k === '_cover') {
         h += `<th style="width:${c.w}${c.align ? ';text-align:' + c.align : ''}">${c.l}</th>`;
         continue;
       }
@@ -729,6 +740,10 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       h += '<tr>';
       h += `<td class="idx">${v.members_only ? '🔒 ' : ''}${i + 1}</td>`;
       h += tCell;
+      if (showCovers) {
+        const thumb = v.id ? `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg` : '';
+        h += `<td style="padding:2px 4px"><img src="${thumb}" alt="" loading="lazy" style="width:44px;height:25px;object-fit:cover;border-radius:2px;display:block"></td>`;
+      }
       h += `<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><a href="${url}" target="_blank" title="${escHtml(v.title)}">${titleHtml}</a></td>`;
       h += `<td class="ch" title="${escHtml(v.channel)}">${escHtml(v.channel || '—')}</td>`;
       h += `<td class="ch" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(v._playlistTitle)}">${escHtml(v._playlistTitle)}</td>`;
@@ -788,7 +803,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     if (!p) { panel.innerHTML = ''; return; }
 
     const matchedSet = new Set(videoMatches[p.id] || []);
-    let vidsFiltered = [...p.vids];
+    let vidsFiltered = skipLocked ? p.vids.filter(v => !v.members_only) : [...p.vids];
     const vidsToShow = sortVids(vidsFiltered, matchedSet, term);
 
     const visN = vidsFiltered.length;
@@ -816,6 +831,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     const vidCols = [
       { k: '_idx', l: '#', w: '56px', align: 'right' },
       { k: '_transcript', l: 'T', w: '30px', align: 'center' },
+      ...(showCovers ? [{ k: '_cover', l: '', w: '50px' }] : []),
       { k: 'title', l: 'title', w: '' },
       { k: 'channel', l: 'channel', w: '120px' },
       { k: 'duration_seconds', l: 'dur', w: '70px' },
@@ -826,7 +842,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
     h += '<table class="vid-table"><thead><tr>';
     for (const c of vidCols) {
-      if (c.k === '_idx' || c.k === '_transcript') {
+      if (c.k === '_idx' || c.k === '_transcript' || c.k === '_cover') {
         h += `<th style="width:${c.w}${c.align ? ';text-align:' + c.align : ''}">${c.l}</th>`;
         continue;
       }
@@ -859,6 +875,10 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       h += `<tr class="${matchedClass}">`;
       h += `<td class="idx">${v.members_only ? '🔒 ' : ''}${i + 1}</td>`;
       h += tCell;
+      if (showCovers) {
+        const thumb = v.id ? `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg` : '';
+        h += `<td style="padding:2px 4px"><img src="${thumb}" alt="" loading="lazy" style="width:44px;height:25px;object-fit:cover;border-radius:2px;display:block"></td>`;
+      }
       h += `<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><a href="${url}" target="_blank" title="${escHtml(v.title)}">${titleHtml}</a></td>`;
       h += `<td class="ch" title="${escHtml(v.channel)}">${chHtml}</td>`;
       h += `<td class="dur">${fmtVidDur(v.duration)}</td>`;
@@ -901,6 +921,18 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       });
     });
   }
+
+  document.getElementById('show-covers').addEventListener('change', e => {
+    showCovers = e.target.checked;
+    renderDetail();
+  });
+
+  document.getElementById('skip-locked').addEventListener('change', e => {
+    skipLocked = e.target.checked;
+    renderStats();
+    renderTable();
+    renderDetail();
+  });
 
   document.getElementById('skip-zero').addEventListener('change', e => {
     skipZero = e.target.checked;
