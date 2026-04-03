@@ -386,36 +386,6 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
   const unenrichedCount = playlists.reduce((s, p) => s + p.vids.filter(v => !v.enriched).length, 0);
 
-  // GitHub token for API dispatch (stored in localStorage, entered once)
-  let ghToken = localStorage.getItem('yt_gh_token') || '';
-
-  async function dispatchWorkflow(workflowFile, inputs) {
-    if (!ghToken) {
-      ghToken = prompt('Enter a GitHub Personal Access Token (needs actions:write scope).\nThis is stored in localStorage and never sent anywhere else.');
-      if (!ghToken) return false;
-      localStorage.setItem('yt_gh_token', ghToken);
-    }
-    try {
-      const resp = await fetch(`https://api.github.com/repos/jsneij/projectyoutube/actions/workflows/${workflowFile}/dispatches`, {
-        method: 'POST',
-        headers: { 'Authorization': `token ${ghToken}`, 'Accept': 'application/vnd.github.v3+json' },
-        body: JSON.stringify({ ref: 'main', inputs }),
-      });
-      if (resp.status === 204) return true;
-      if (resp.status === 401 || resp.status === 403) {
-        localStorage.removeItem('yt_gh_token');
-        ghToken = '';
-        alert('Token invalid or expired. Please try again.');
-        return false;
-      }
-      alert(`GitHub API error: ${resp.status}`);
-      return false;
-    } catch (err) {
-      alert(`Network error: ${err.message}`);
-      return false;
-    }
-  }
-
   function updateTopbarEnrich() {
     const tCount = transcriptSelCount();
     const total = unenrichedCount + tCount;
@@ -432,34 +402,26 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     if (tCount > 0) parts.push(`${tCount} transcripts`);
     countEl.innerHTML = parts.join(' · ');
     enrichBtn.style.display = 'inline';
-    const workflowFile = total <= 10 ? 'enrich_missing_10.yml' : 'enrich_missing.yml';
     if (total <= 10) {
-      enrichBtn.href = '#';
+      enrichBtn.href = 'https://github.com/jsneij/projectyoutube/actions/workflows/enrich_missing_10.yml';
       enrichBtn.style.background = 'var(--accent-dim)';
       enrichBtn.style.color = 'var(--accent)';
       enrichBtn.style.borderColor = 'var(--accent)';
     } else {
-      enrichBtn.href = '#';
+      enrichBtn.href = 'https://github.com/jsneij/projectyoutube/actions/workflows/enrich_missing.yml';
       enrichBtn.style.background = 'var(--bg3)';
       enrichBtn.style.color = 'var(--fg3)';
       enrichBtn.style.borderColor = 'var(--border2)';
     }
-    enrichBtn.onclick = async (e) => {
-      e.preventDefault();
-      const inputs = {};
-      if (tCount > 0) inputs.transcript_ids = Object.keys(transcriptSel).join(',');
-      if (workflowFile === 'enrich_missing.yml') inputs.confirm = 'ENRICH-MISSING';
-      enrichBtn.textContent = 'dispatching...';
-      const ok = await dispatchWorkflow(workflowFile, inputs);
-      if (ok) {
-        enrichBtn.textContent = 'dispatched!';
-        enrichBtn.style.background = '#1b3a1b';
-        enrichBtn.style.color = '#4caf50';
-        enrichBtn.style.borderColor = '#4caf50';
-      } else {
-        enrichBtn.textContent = 'enrich';
-      }
-    };
+    // When transcripts are selected, clicking enrich copies IDs to clipboard
+    enrichBtn.onclick = tCount > 0 ? (e => {
+      const ids = Object.keys(transcriptSel).join(',');
+      navigator.clipboard.writeText(ids).then(() => {
+        const orig = enrichBtn.textContent;
+        enrichBtn.textContent = 'copied!';
+        setTimeout(() => { enrichBtn.textContent = orig; }, 1500);
+      });
+    }) : null;
   }
   updateTopbarEnrich();
 
