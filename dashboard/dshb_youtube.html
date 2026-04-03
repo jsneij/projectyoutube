@@ -966,7 +966,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       setToggleStyle(btn, true, color);
     }
     // Deactivate the other toggle
-    if (btn === toggleLockedBtn) setToggleStyle(toggleTranscriptsBtn, false, '#c0392b');
+    if (btn === toggleLockedBtn) setToggleStyle(toggleTranscriptsBtn, false, 'var(--fg3)');
     else setToggleStyle(toggleLockedBtn, false, 'var(--fg3)');
     searchSelectedPids.clear();
     renderTable();
@@ -974,7 +974,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
   }
 
   toggleLockedBtn.addEventListener('click', () => applyToggle('#locked', toggleLockedBtn, 'var(--fg3)'));
-  toggleTranscriptsBtn.addEventListener('click', () => applyToggle('#transcripts', toggleTranscriptsBtn, '#c0392b'));
+  toggleTranscriptsBtn.addEventListener('click', () => applyToggle('#transcripts', toggleTranscriptsBtn, 'var(--fg3)'));
 
   document.getElementById('clear-sel').addEventListener('click', () => {
     searchSelectedPids.clear();
@@ -991,7 +991,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     vidSortCol = 'fetched_at';
     vidSortDir = -1;
     setToggleStyle(toggleLockedBtn, false, 'var(--fg3)');
-    setToggleStyle(toggleTranscriptsBtn, false, '#c0392b');
+    setToggleStyle(toggleTranscriptsBtn, false, 'var(--fg3)');
     renderTable();
     renderDetail();
   });
@@ -1005,7 +1005,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       if (!searchTerm.trim()) searchSelectedPids.clear();
       // Sync toggle button styles with search content
       setToggleStyle(toggleLockedBtn, searchTerm.trim().toLowerCase() === '#locked', 'var(--fg3)');
-      setToggleStyle(toggleTranscriptsBtn, searchTerm.trim().toLowerCase() === '#transcripts', '#c0392b');
+      setToggleStyle(toggleTranscriptsBtn, searchTerm.trim().toLowerCase() === '#transcripts', 'var(--fg3)');
       renderTable();
       renderDetail();
     }, 150);
