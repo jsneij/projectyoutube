@@ -21,6 +21,9 @@ ProjectYouTube/
 │   ├── youtube_playlists_compact.json  ← minified, used by dashboard
 │   ├── fetch_log.json
 │   └── last_run_summary.json
+├── TRANSCRIPTS/                     ← per-playlist subfolders with .txt transcripts
+│   └── {Playlist Title}/
+│       └── {video_id}.txt
 ├── skills/
 │   ├── project_structure.md
 │   ├── efficient_json_fetch_pattern.md
@@ -39,6 +42,8 @@ python3 scripts/fetch_youtube_playlists.py --fast         # flat metadata, no en
 python3 scripts/fetch_youtube_playlists.py --structural   # titles + membership only, write-if-changed
 python3 scripts/fetch_youtube_playlists.py --enrich       # same as default (force enrichment)
 python3 scripts/fetch_youtube_playlists.py --enrich-only  # enrich unenriched videos only (no sync)
+python3 scripts/fetch_youtube_playlists.py --transcript-ids ID1,ID2  # fetch transcripts only
+python3 scripts/fetch_youtube_playlists.py --enrich-only --transcript-ids ID1,ID2  # enrich + transcripts
 ```
 
 ## Environment variables
@@ -49,9 +54,9 @@ python3 scripts/fetch_youtube_playlists.py --enrich-only  # enrich unenriched vi
 ## GitHub Actions
 Four workflows in `.github/workflows/`:
 - **Fetch YouTube Data** (`fetch_youtube_data.yml`) — daily 04:00 CET, runs `--fast`
-- **Enrich Missing (max 10)** (`enrich_missing_10.yml`) — manual, aborts if >10 unenriched
-- **Enrich Missing** (`enrich_missing.yml`) — manual, requires typing `ENRICH-MISSING`
-- **Complete Enrichment** (`complete_enrichment.yml`) — manual, requires typing `COMPLETE-ENRICH`
+- **Enrich Missing (max 10)** (`enrich_missing_10.yml`) — manual, aborts if >10 items; optional `transcript_ids` input
+- **Enrich Missing** (`enrich_missing.yml`) — manual, requires `ENRICH-MISSING`; optional `transcript_ids` input
+- **Complete Enrichment** (`complete_enrichment.yml`) — manual, requires `COMPLETE-ENRICH`; optional `transcript_ids` input
 
 GitHub Secrets: `YT_COOKIES` (Netscape cookies.txt), `YT_API_KEY`
 
@@ -68,3 +73,5 @@ Root `index.html` redirects to dashboard. Deploys automatically on push via GitH
 - Enrichment in CI requires `--skip-download --ignore-no-formats-error` flags (yt-dlp 2025.11+ needs JS runtime for format resolution, which CI lacks)
 - Upload dates during fast fetch come from YouTube Data API v3 via `YT_API_KEY` (not from yt-dlp flat-playlist, which doesn't return them)
 - Cookies must be from Brave browser (clean, YouTube-only) — never full browser cookie exports
+- Transcripts are fetched via yt-dlp subtitles (English, auto-generated fallback), converted from SRT to plain text, stored in `TRANSCRIPTS/{playlist_title}/{video_id}.txt`
+- Dashboard transcript selections are stored in localStorage and copied to clipboard for pasting into GitHub Actions `transcript_ids` input

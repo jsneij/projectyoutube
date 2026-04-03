@@ -1,7 +1,12 @@
 name: Enrich Missing (max 10)
 
 on:
-  workflow_dispatch:  # manual trigger only
+  workflow_dispatch:
+    inputs:
+      transcript_ids:
+        description: 'Optional: comma-separated video IDs for transcript download'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -15,21 +20,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check unenriched count
+      - name: Check unenriched + transcript count
         run: |
-          COUNT=$(python3 -c "
+          UNENRICHED=$(python3 -c "
           import json
           with open('data/youtube_playlists_compact.json') as f:
               data = json.load(f)
           print(sum(1 for p in data.get('playlists',[]) if not p.get('deleted') for v in p.get('videos',[]) if v.get('enriched')==False))
           ")
-          echo "Unenriched videos: $COUNT"
-          if [ "$COUNT" -eq 0 ]; then
-            echo "ERROR: No unenriched videos found. Nothing to do."
+          TIDS="${{ github.event.inputs.transcript_ids }}"
+          if [ -n "$TIDS" ]; then
+            TCOUNT=$(echo "$TIDS" | tr ',' '\n' | grep -c '.')
+          else
+            TCOUNT=0
+          fi
+          TOTAL=$((UNENRICHED + TCOUNT))
+          echo "Unenriched videos: $UNENRICHED, Transcripts: $TCOUNT, Total: $TOTAL"
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "ERROR: Nothing to do (no unenriched videos, no transcript IDs)."
             exit 1
           fi
-          if [ "$COUNT" -gt 10 ]; then
-            echo "ERROR: $COUNT unenriched videos exceeds limit of 10. Use Complete Enrichment instead."
+          if [ "$TOTAL" -gt 10 ]; then
+            echo "ERROR: $TOTAL items exceeds limit of 10. Use Enrich Missing or Complete Enrichment instead."
             exit 1
           fi
 
@@ -51,7 +63,12 @@ jobs:
           YTDLP_PATH: yt-dlp
           YTDLP_COOKIES_FILE: /tmp/cookies.txt
           YT_API_KEY: ${{ secrets.YT_API_KEY }}
-        run: python3 scripts/fetch_youtube_playlists.py --enrich-only
+        run: |
+          ARGS="--enrich-only"
+          if [ -n "${{ github.event.inputs.transcript_ids }}" ]; then
+            ARGS="$ARGS --transcript-ids ${{ github.event.inputs.transcript_ids }}"
+          fi
+          python3 scripts/fetch_youtube_playlists.py $ARGS
 
       - name: Clean up cookies
         if: always()
@@ -61,7 +78,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/
+          git add data/ TRANSCRIPTS/ || git add data/
           if git diff --cached --quiet; then
             echo "No data changes — skipping commit."
           else

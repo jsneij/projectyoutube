@@ -202,7 +202,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     <span id="topbar-source" style="font-family:var(--mono);font-size:10px;color:var(--fg3)"></span>
     <div class="sep"></div>
     <span id="topbar-fetch" style="font-family:var(--mono);font-size:10px;color:var(--fg3)"><span style="color:var(--accent)">last fetch</span> <span id="topbar-fetch-date"></span></span>
-    <span id="topbar-unenriched" style="font-family:var(--mono);font-size:10px;color:var(--fg3);display:none"><span class="sep" style="display:inline-block;width:1px;height:14px;background:var(--border2);vertical-align:middle;margin:0 12px"></span><span id="unenriched-count" style="color:var(--accent)"></span> unenriched<a id="enrich-btn" href="https://github.com/jsneij/projectyoutube/actions/workflows/enrich_missing_10.yml" target="_blank" style="display:none;margin-left:6px;font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:var(--accent-dim);color:var(--accent);text-decoration:none;border:1px solid var(--accent);cursor:pointer">enrich</a></span>
+    <span id="topbar-unenriched" style="font-family:var(--mono);font-size:10px;color:var(--fg3);display:none"><span class="sep" style="display:inline-block;width:1px;height:14px;background:var(--border2);vertical-align:middle;margin:0 12px"></span><span id="unenriched-count" style="color:var(--accent)"></span> <a id="enrich-btn" href="https://github.com/jsneij/projectyoutube/actions/workflows/enrich_missing_10.yml" target="_blank" style="display:none;margin-left:6px;font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:var(--accent-dim);color:var(--accent);text-decoration:none;border:1px solid var(--accent);cursor:pointer">enrich</a></span>
     <span style="margin-left:auto"><a href="https://github.com/jsneij/projectyoutube/actions/workflows/fetch_youtube_data.yml" target="_blank" style="font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:var(--bg3);color:var(--fg3);text-decoration:none;border:1px solid var(--border2);cursor:pointer">fetch</a></span>
   </div>
 
@@ -213,7 +213,10 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     <button class="search-clear" id="search-clear">✕</button>
     <span class="search-mode" id="search-mode"></span>
     <span id="clear-sel" style="display:none;cursor:pointer;color:var(--accent);font-family:var(--mono);font-size:11px;margin-left:12px;text-decoration:underline">clear selection</span>
-    <label title="Hide members-only or unavailable videos. Search &quot;#locked&quot; to find them all." style="font-family:var(--mono);font-size:11px;color:var(--fg2);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;margin-left:auto">
+    <label title="Show only videos with transcripts (fetched or selected)" style="font-family:var(--mono);font-size:11px;color:var(--fg2);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;margin-left:auto">
+      <input type="checkbox" id="filter-transcripts" style="accent-color:var(--accent)"> &nbsp;transcripts
+    </label>
+    <label title="Hide members-only or unavailable videos. Search &quot;#locked&quot; to find them all." style="font-family:var(--mono);font-size:11px;color:var(--fg2);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;margin-left:8px">
       <input type="checkbox" id="skip-locked" style="accent-color:var(--accent)"> &nbsp;skip 🔒
     </label>
     <label title="Hide playlists with 0 videos." style="font-family:var(--mono);font-size:11px;color:var(--fg2);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;margin-left:8px">
@@ -270,6 +273,8 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       url: v.url || '',
       members_only: v.members_only || false,
       enriched: v.enriched !== false,
+      transcript: v.transcript || false,
+      subtitles_available: v.subtitles_available || false,
     }));
 
     const totalDur = vids.reduce((s, v) => s + v.duration_seconds, 0);
@@ -306,10 +311,35 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
   let filterMin = 0;
   let skipLocked = false;
   let skipZero = true;
+  let filterTranscripts = false;
 
   // Video sort state (per detail panel)
   let vidSortCol = 'fetched_at';
   let vidSortDir = -1;
+
+  // Transcript selection state (localStorage-backed)
+  // Stores { videoId: playlistTitle, ... } for videos selected for transcript fetch
+  let transcriptSel = {};
+  try {
+    const stored = localStorage.getItem('yt_transcript_ids');
+    if (stored) transcriptSel = JSON.parse(stored);
+  } catch {}
+  // Clear IDs that already have transcript=true in data
+  for (const p of (raw.playlists || [])) {
+    for (const v of (p.videos || [])) {
+      if (v.transcript && transcriptSel[v.video_id]) delete transcriptSel[v.video_id];
+    }
+  }
+  localStorage.setItem('yt_transcript_ids', JSON.stringify(transcriptSel));
+
+  function saveTranscriptSel() {
+    localStorage.setItem('yt_transcript_ids', JSON.stringify(transcriptSel));
+  }
+  function transcriptSelCount() { return Object.keys(transcriptSel).length; }
+
+  function sanitizePath(s) {
+    return s.replace(/[/\\:*?"<>|]/g, '_').replace(/^[.\s]+|[.\s]+$/g, '') || '_';
+  }
 
   function fmtNum(n) {
     if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
@@ -352,20 +382,45 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
   }
 
   const unenrichedCount = playlists.reduce((s, p) => s + p.vids.filter(v => !v.enriched).length, 0);
-  if (unenrichedCount > 0) {
-    document.getElementById('unenriched-count').textContent = unenrichedCount;
-    document.getElementById('topbar-unenriched').style.display = 'inline';
+
+  function updateTopbarEnrich() {
+    const tCount = transcriptSelCount();
+    const total = unenrichedCount + tCount;
+    const el = document.getElementById('topbar-unenriched');
+    const countEl = document.getElementById('unenriched-count');
     const enrichBtn = document.getElementById('enrich-btn');
+    if (total === 0) {
+      el.style.display = 'none';
+      return;
+    }
+    el.style.display = 'inline';
+    const parts = [];
+    if (unenrichedCount > 0) parts.push(`${unenrichedCount} unenriched`);
+    if (tCount > 0) parts.push(`${tCount} transcripts`);
+    countEl.innerHTML = parts.join(' · ');
     enrichBtn.style.display = 'inline';
-    if (unenrichedCount <= 10) {
+    if (total <= 10) {
       enrichBtn.href = 'https://github.com/jsneij/projectyoutube/actions/workflows/enrich_missing_10.yml';
+      enrichBtn.style.background = 'var(--accent-dim)';
+      enrichBtn.style.color = 'var(--accent)';
+      enrichBtn.style.borderColor = 'var(--accent)';
     } else {
       enrichBtn.href = 'https://github.com/jsneij/projectyoutube/actions/workflows/enrich_missing.yml';
       enrichBtn.style.background = 'var(--bg3)';
       enrichBtn.style.color = 'var(--fg3)';
       enrichBtn.style.borderColor = 'var(--border2)';
     }
+    // When transcripts are selected, clicking enrich copies IDs to clipboard
+    enrichBtn.onclick = tCount > 0 ? (e => {
+      const ids = Object.keys(transcriptSel).join(',');
+      navigator.clipboard.writeText(ids).then(() => {
+        const orig = enrichBtn.textContent;
+        enrichBtn.textContent = 'copied!';
+        setTimeout(() => { enrichBtn.textContent = orig; }, 1500);
+      });
+    }) : null;
   }
+  updateTopbarEnrich();
 
   function renderStats() {
     const visPlaylists = playlists.filter(p => (!skipZero || p.n > 0));
@@ -595,6 +650,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     for (const p of playlists) {
       for (const v of p.vids) {
         if (skipLocked && v.members_only) continue;
+        if (filterTranscripts && !v.transcript && !transcriptSel[v.id]) continue;
         const isLocked = term === '#locked' && v.members_only;
         if (isLocked || v.title.toLowerCase().includes(term) || v.channel.toLowerCase().includes(term)) {
           allMatched.push({ ...v, _playlistTitle: p.title, _playlistId: p.id });
@@ -615,6 +671,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
     const vidCols = [
       { k: '_idx',            l: '#',        w: '40px', align: 'right' },
+      { k: '_transcript',     l: 'T',        w: '30px', align: 'center' },
       { k: 'title',           l: 'title',    w: ''      },
       { k: 'channel',         l: 'channel',  w: '110px' },
       { k: '_playlist',       l: 'playlist', w: '120px' },
@@ -625,7 +682,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
     h += '<table class="vid-table"><thead><tr>';
     for (const c of vidCols) {
-      if (c.k === '_idx' || c.k === '_playlist') {
+      if (c.k === '_idx' || c.k === '_playlist' || c.k === '_transcript') {
         h += `<th style="width:${c.w}${c.align ? ';text-align:' + c.align : ''}">${c.l}</th>`;
         continue;
       }
@@ -641,8 +698,22 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     allMatched.forEach((v, i) => {
       const url = v.id ? `https://www.youtube.com/watch?v=${v.id}` : '#';
       const titleHtml = highlight(v.title, searchTerm.trim());
+
+      let tCell = '';
+      if (v.transcript) {
+        const pFolder = sanitizePath(v._playlistTitle);
+        const tUrl = `../TRANSCRIPTS/${encodeURIComponent(pFolder)}/${v.id}.txt`;
+        tCell = `<td style="text-align:center"><a href="${tUrl}" target="_blank" title="View transcript" style="color:#4caf50;text-decoration:none;font-size:14px">&#10003;</a></td>`;
+      } else if (v.subtitles_available && v.enriched) {
+        const checked = transcriptSel[v.id] ? ' checked' : '';
+        tCell = `<td style="text-align:center"><input type="checkbox" class="transcript-cb" data-vid="${v.id}" data-ptitle="${escHtml(v._playlistTitle)}"${checked} style="accent-color:var(--accent);cursor:pointer"></td>`;
+      } else {
+        tCell = '<td></td>';
+      }
+
       h += '<tr>';
       h += `<td class="idx">${v.members_only ? '🔒 ' : ''}${i + 1}</td>`;
+      h += tCell;
       h += `<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><a href="${url}" target="_blank" title="${escHtml(v.title)}">${titleHtml}</a></td>`;
       h += `<td class="ch" title="${escHtml(v.channel)}">${escHtml(v.channel || '—')}</td>`;
       h += `<td class="ch" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(v._playlistTitle)}">${escHtml(v._playlistTitle)}</td>`;
@@ -654,6 +725,18 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
     h += '</tbody></table>';
     panel.innerHTML = h;
+
+    // Bind transcript checkboxes
+    panel.querySelectorAll('.transcript-cb').forEach(cb => {
+      cb.addEventListener('change', e => {
+        const vid = e.target.dataset.vid;
+        const ptitle = e.target.dataset.ptitle;
+        if (e.target.checked) transcriptSel[vid] = ptitle;
+        else delete transcriptSel[vid];
+        saveTranscriptSel();
+        updateTopbarEnrich();
+      });
+    });
 
     panel.querySelectorAll('th[data-vcol]').forEach(th => {
       th.addEventListener('click', () => {
@@ -685,7 +768,8 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     if (!p) { panel.innerHTML = ''; return; }
 
     const matchedSet = new Set(videoMatches[p.id] || []);
-    const vidsFiltered = skipLocked ? p.vids.filter(v => !v.members_only) : p.vids;
+    let vidsFiltered = skipLocked ? p.vids.filter(v => !v.members_only) : [...p.vids];
+    if (filterTranscripts) vidsFiltered = vidsFiltered.filter(v => v.transcript || transcriptSel[v.id]);
     const vidsToShow = sortVids(vidsFiltered, matchedSet, term);
 
     const visN = vidsFiltered.length;
@@ -712,6 +796,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
     const vidCols = [
       { k: '_idx', l: '#', w: '56px', align: 'right' },
+      { k: '_transcript', l: 'T', w: '30px', align: 'center' },
       { k: 'title', l: 'title', w: '' },
       { k: 'channel', l: 'channel', w: '120px' },
       { k: 'duration_seconds', l: 'dur', w: '70px' },
@@ -722,7 +807,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
     h += '<table class="vid-table"><thead><tr>';
     for (const c of vidCols) {
-      if (c.k === '_idx') {
+      if (c.k === '_idx' || c.k === '_transcript') {
         h += `<th style="width:${c.w}${c.align ? ';text-align:' + c.align : ''}">${c.l}</th>`;
         continue;
       }
@@ -735,14 +820,27 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     }
     h += '</tr></thead><tbody>';
 
+    const pFolder = sanitizePath(p.title);
     vidsToShow.forEach((v, i) => {
       const url = v.id ? `https://www.youtube.com/watch?v=${v.id}` : '#';
       const titleHtml = term ? highlight(v.title, searchTerm.trim()) : escHtml(v.title);
       const chHtml = term ? highlight(v.channel, searchTerm.trim()) : escHtml(v.channel || '—');
       const matchedClass = v._matched ? ' vid-matched' : '';
 
+      let tCell = '';
+      if (v.transcript) {
+        const tUrl = `../TRANSCRIPTS/${encodeURIComponent(pFolder)}/${v.id}.txt`;
+        tCell = `<td style="text-align:center"><a href="${tUrl}" target="_blank" title="View transcript" style="color:#4caf50;text-decoration:none;font-size:14px">&#10003;</a></td>`;
+      } else if (v.subtitles_available && v.enriched) {
+        const checked = transcriptSel[v.id] ? ' checked' : '';
+        tCell = `<td style="text-align:center"><input type="checkbox" class="transcript-cb" data-vid="${v.id}" data-ptitle="${escHtml(p.title)}"${checked} style="accent-color:var(--accent);cursor:pointer"></td>`;
+      } else {
+        tCell = '<td></td>';
+      }
+
       h += `<tr class="${matchedClass}">`;
       h += `<td class="idx">${v.members_only ? '🔒 ' : ''}${i + 1}</td>`;
+      h += tCell;
       h += `<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><a href="${url}" target="_blank" title="${escHtml(v.title)}">${titleHtml}</a></td>`;
       h += `<td class="ch" title="${escHtml(v.channel)}">${chHtml}</td>`;
       h += `<td class="dur">${fmtVidDur(v.duration)}</td>`;
@@ -754,6 +852,18 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
     h += '</tbody></table>';
     panel.innerHTML = h;
+
+    // Bind transcript checkboxes
+    panel.querySelectorAll('.transcript-cb').forEach(cb => {
+      cb.addEventListener('change', e => {
+        const vid = e.target.dataset.vid;
+        const ptitle = e.target.dataset.ptitle;
+        if (e.target.checked) transcriptSel[vid] = ptitle;
+        else delete transcriptSel[vid];
+        saveTranscriptSel();
+        updateTopbarEnrich();
+      });
+    });
 
     // Bind video column sort
     panel.querySelectorAll('th[data-vcol]').forEach(th => {
@@ -780,6 +890,11 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     skipLocked = e.target.checked;
     renderStats();
     renderTable();
+    renderDetail();
+  });
+
+  document.getElementById('filter-transcripts').addEventListener('change', e => {
+    filterTranscripts = e.target.checked;
     renderDetail();
   });
 

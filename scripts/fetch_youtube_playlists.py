@@ -8,6 +8,8 @@ Modes
   python3 fetch_youtube_playlists.py --fast      # fast sync only (flat metadata, no enrichment)
   python3 fetch_youtube_playlists.py --structural # titles + membership only, write-if-changed
   python3 fetch_youtube_playlists.py --enrich    # same as default (force enrichment)
+  python3 fetch_youtube_playlists.py --transcript-ids ID1,ID2  # fetch transcripts only
+  python3 fetch_youtube_playlists.py --enrich-only --transcript-ids ID1,ID2  # enrich + transcripts
 
 Fast sync (default)
 -------------------
@@ -65,6 +67,7 @@ BROWSER            = "chrome"
 COOKIES_FILE       = os.environ.get("YTDLP_COOKIES_FILE", "")  # path to Netscape cookies.txt
 YT_API_KEY         = os.environ.get("YT_API_KEY", "")        # YouTube Data API v3 key
 OUTPUT_DIR         = Path(__file__).parent.parent / "data"
+TRANSCRIPTS_DIR    = Path(__file__).parent.parent / "TRANSCRIPTS"
 OUTPUT_FILE        = OUTPUT_DIR / "youtube_playlists.json"
 OUTPUT_COMPACT     = OUTPUT_DIR / "youtube_playlists_compact.json"
 FETCH_LOG_FILE     = OUTPUT_DIR / "fetch_log.json"
@@ -918,6 +921,7 @@ def parse_video(flat: dict, full: dict | None, position: int) -> dict:
         "language":            enr.get("language") if enr else None,
         # ── Meta ──────────────────────────────────────────────────────────
         "enriched":            enr is not None,
+        "transcript":          False,
         "fetched_at":          datetime.now(timezone.utc).isoformat(),
     }
 
@@ -1099,6 +1103,118 @@ def structural_update(existing: dict, new_title: str) -> tuple[dict, dict]:
     existing["video_count"]  = len(videos)
     existing["last_updated"] = datetime.now(timezone.utc).isoformat()
     return existing, changes
+
+
+# ── Transcript fetch ──────────────────────────────────────────────────────────
+
+def _sanitize_folder_name(name: str) -> str:
+    """Sanitize a playlist title for use as a filesystem folder name."""
+    s = re.sub(r'[/\\:*?"<>|]', '_', name)
+    s = s.strip('. ')
+    return s or '_'
+
+
+def _srt_to_text(srt_content: str) -> str:
+    """Convert SRT subtitle content to plain text (strip timestamps, tags)."""
+    lines = []
+    for line in srt_content.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        if re.match(r'^\d+$', line):          # sequence number
+            continue
+        if re.match(r'\d{2}:\d{2}:\d{2}', line):  # timestamp line
+            continue
+        line = re.sub(r'<[^>]+>', '', line)   # strip HTML-like tags
+        if line:
+            lines.append(line)
+    return '\n'.join(lines)
+
+
+def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
+    """Download subtitles for the given video IDs and save as plain text."""
+    # Build lookup: video_id -> (playlist_title, video_dict)
+    vid_lookup: dict[str, list[tuple[str, dict]]] = {}
+    for p in data.get("playlists", []):
+        if p.get("deleted"):
+            continue
+        for v in p.get("videos", []):
+            vid = v.get("video_id")
+            if vid:
+                vid_lookup.setdefault(vid, []).append((p.get("title", "Unknown"), v))
+
+    requested = [vid for vid in video_ids if vid in vid_lookup]
+    if not requested:
+        print("  No matching video IDs found in data.")
+        return
+
+    print(f"\n  Fetching transcripts for {len(requested)} videos...")
+    fetched = 0
+
+    for vid_id in requested:
+        playlist_title, video = vid_lookup[vid_id][0]
+        folder_name = _sanitize_folder_name(playlist_title)
+        out_dir = TRANSCRIPTS_DIR / folder_name
+        txt_path = out_dir / f"{vid_id}.txt"
+
+        if txt_path.exists():
+            print(f"    {vid_id}: already exists — skipping")
+            video["transcript"] = True
+            continue
+
+        os.makedirs(out_dir, exist_ok=True)
+        url = f"https://www.youtube.com/watch?v={vid_id}"
+        cmd = [
+            YTDLP,
+            "--write-subs", "--write-auto-subs",
+            "--sub-langs", "en.*",
+            "--skip-download",
+            "--convert-subs", "srt",
+            "--ignore-no-formats-error",
+            "-o", str(out_dir / "%(id)s"),
+            url,
+        ]
+        if COOKIES_FILE:
+            cmd += ["--cookies", COOKIES_FILE]
+        else:
+            cmd += ["--cookies-from-browser", BROWSER]
+
+        try:
+            subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        except subprocess.TimeoutExpired:
+            print(f"    {vid_id}: timeout — skipping")
+            continue
+        except Exception as exc:
+            print(f"    {vid_id}: error — {exc}")
+            continue
+
+        # Find the downloaded .srt file (may have language suffix)
+        srt_files = list(out_dir.glob(f"{vid_id}*.srt"))
+        if not srt_files:
+            print(f"    {vid_id}: no subtitles found")
+            continue
+
+        srt_file = srt_files[0]
+        srt_content = srt_file.read_text(encoding="utf-8", errors="replace")
+        plain_text = _srt_to_text(srt_content)
+
+        if not plain_text.strip():
+            print(f"    {vid_id}: empty subtitle — skipping")
+            srt_file.unlink(missing_ok=True)
+            continue
+
+        txt_path.write_text(plain_text, encoding="utf-8")
+        srt_file.unlink(missing_ok=True)
+        # Clean up any other intermediate subtitle files
+        for f in out_dir.glob(f"{vid_id}*.vtt"):
+            f.unlink(missing_ok=True)
+
+        video["transcript"] = True
+        fetched += 1
+        print(f"    {GREEN}✓{RESET} {vid_id}: {video.get('title', '')[:50]}")
+        time.sleep(1.5)
+
+    print(f"  {GREEN}✓ {fetched} transcripts fetched{RESET}")
 
 
 # ── Enrichment pass ───────────────────────────────────────────────────────────
@@ -1309,6 +1425,24 @@ def main():
     total_steps = 3 if enrich_mode else 2
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+    # ── Parse --transcript-ids (can combine with any mode) ────────────────
+    transcript_ids: list[str] = []
+    if "--transcript-ids" in sys.argv:
+        idx = sys.argv.index("--transcript-ids")
+        if idx + 1 < len(sys.argv):
+            transcript_ids = [v.strip() for v in sys.argv[idx + 1].split(",")
+                              if v.strip()]
+
+    # ── [--transcript-ids only] No sync or enrichment, just fetch transcripts
+    if transcript_ids and not enrich_only_mode and "--fast" not in sys.argv and "--structural" not in sys.argv and "--enrich" not in sys.argv:
+        data = load_existing()
+        if data is None:
+            print("ERROR: No existing JSON found.", file=sys.stderr)
+            sys.exit(1)
+        run_transcript_fetch(data, transcript_ids)
+        save_output(data)
+        sys.exit(0)
+
     # ── [--enrich-only] Skip flat sync, just patch enriched=False videos ──
     if enrich_only_mode:
         data = load_existing()
@@ -1320,6 +1454,8 @@ def main():
         run_upload_dates_pass(data)
         run_playlist_metadata_pass(data)
         data = run_enrichment(data)
+        if transcript_ids:
+            run_transcript_fetch(data, transcript_ids)
         save_output(data)
         sys.exit(0)
 
@@ -1567,6 +1703,8 @@ def main():
         if enrich_mode:
             output["metadata"]["enriched"] = True
             output = run_enrichment(output)
+            if transcript_ids:
+                run_transcript_fetch(output, transcript_ids)
             save_output(output)
 
         # ── Save fetch log ─────────────────────────────────────────────────

@@ -6,6 +6,10 @@ on:
       confirm:
         description: 'Type COMPLETE-ENRICH to confirm (uses ~60 min of GitHub Actions quota)'
         required: true
+      transcript_ids:
+        description: 'Optional: comma-separated video IDs for transcript download'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -44,7 +48,12 @@ jobs:
           YTDLP_PATH: yt-dlp
           YTDLP_COOKIES_FILE: /tmp/cookies.txt
           YT_API_KEY: ${{ secrets.YT_API_KEY }}
-        run: python3 scripts/fetch_youtube_playlists.py --enrich
+        run: |
+          ARGS="--enrich"
+          if [ -n "${{ github.event.inputs.transcript_ids }}" ]; then
+            ARGS="$ARGS --transcript-ids ${{ github.event.inputs.transcript_ids }}"
+          fi
+          python3 scripts/fetch_youtube_playlists.py $ARGS
 
       - name: Clean up cookies
         if: always()
@@ -54,7 +63,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/
+          git add data/ TRANSCRIPTS/ || git add data/
           if git diff --cached --quiet; then
             echo "No data changes — skipping commit."
           else
