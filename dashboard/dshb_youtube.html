@@ -743,7 +743,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       h += tCell;
       if (showCovers) {
         const thumb = v.id ? `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg` : '';
-        h += `<td style="padding:2px 4px"><img src="${thumb}" alt="" loading="lazy" style="width:80px;height:45px;object-fit:contain;border-radius:2px;display:block"></td>`;
+        h += `<td style="padding:2px 4px"><img src="${thumb}" alt="" loading="lazy" style="width:80px;height:auto;object-fit:contain;border-radius:2px;display:block"></td>`;
       }
       h += `<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><a href="${url}" target="_blank" title="${escHtml(v.title)}">${titleHtml}</a></td>`;
       h += `<td class="ch" title="${escHtml(v.channel)}">${escHtml(v.channel || '—')}</td>`;
@@ -878,7 +878,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       h += tCell;
       if (showCovers) {
         const thumb = v.id ? `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg` : '';
-        h += `<td style="padding:2px 4px"><img src="${thumb}" alt="" loading="lazy" style="width:80px;height:45px;object-fit:contain;border-radius:2px;display:block"></td>`;
+        h += `<td style="padding:2px 4px"><img src="${thumb}" alt="" loading="lazy" style="width:80px;height:auto;object-fit:contain;border-radius:2px;display:block"></td>`;
       }
       h += `<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><a href="${url}" target="_blank" title="${escHtml(v.title)}">${titleHtml}</a></td>`;
       h += `<td class="ch" title="${escHtml(v.channel)}">${chHtml}</td>`;
