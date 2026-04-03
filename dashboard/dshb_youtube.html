@@ -172,6 +172,9 @@ tr.row.has-match td:first-child { box-shadow: inset 2px 0 0 var(--accent2); }
 }
 .vid-table a { color: var(--accent); text-decoration: none; }
 .vid-table a:hover { text-decoration: underline; }
+.transcript-cb { appearance: none; -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border2); background: transparent; cursor: pointer; vertical-align: middle; margin: 0; padding: 0; transition: background 0.15s, border-color 0.15s; opacity: 0.5; }
+.transcript-cb:checked { background: var(--fg3); border-color: var(--fg3); opacity: 1; }
+.transcript-cb:hover { border-color: var(--fg3); opacity: 0.8; }
 .vid-table .idx { color: var(--fg3); font-family: var(--mono); font-size: 10px; width: 56px; min-width: 56px; text-align: right; white-space: nowrap; }
 .vid-table .ch { color: var(--fg2); max-width: 130px; }
 .vid-table .dur { color: var(--fg3); font-family: var(--mono); font-size: 10px; text-align: right; }
@@ -706,7 +709,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
         tCell = `<td style="text-align:center"><a href="${tUrl}" target="_blank" title="View transcript" style="color:#4caf50;text-decoration:none;font-size:14px">&#10003;</a></td>`;
       } else if (v.enriched) {
         const checked = transcriptSel[v.id] ? ' checked' : '';
-        tCell = `<td style="text-align:center"><input type="checkbox" class="transcript-cb" data-vid="${v.id}" data-ptitle="${escHtml(v._playlistTitle)}"${checked} style="accent-color:var(--accent);cursor:pointer"></td>`;
+        tCell = `<td style="text-align:center"><input type="radio" class="transcript-cb" data-vid="${v.id}" data-ptitle="${escHtml(v._playlistTitle)}"${checked}></td>`;
       } else {
         tCell = '<td></td>';
       }
@@ -726,13 +729,17 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     h += '</tbody></table>';
     panel.innerHTML = h;
 
-    // Bind transcript checkboxes
+    // Bind transcript radio toggles
     panel.querySelectorAll('.transcript-cb').forEach(cb => {
-      cb.addEventListener('change', e => {
+      cb.addEventListener('click', e => {
         const vid = e.target.dataset.vid;
         const ptitle = e.target.dataset.ptitle;
-        if (e.target.checked) transcriptSel[vid] = ptitle;
-        else delete transcriptSel[vid];
+        if (transcriptSel[vid]) {
+          delete transcriptSel[vid];
+          e.target.checked = false;
+        } else {
+          transcriptSel[vid] = ptitle;
+        }
         saveTranscriptSel();
         updateTopbarEnrich();
       });
@@ -833,7 +840,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
         tCell = `<td style="text-align:center"><a href="${tUrl}" target="_blank" title="View transcript" style="color:#4caf50;text-decoration:none;font-size:14px">&#10003;</a></td>`;
       } else if (v.enriched) {
         const checked = transcriptSel[v.id] ? ' checked' : '';
-        tCell = `<td style="text-align:center"><input type="checkbox" class="transcript-cb" data-vid="${v.id}" data-ptitle="${escHtml(p.title)}"${checked} style="accent-color:var(--accent);cursor:pointer"></td>`;
+        tCell = `<td style="text-align:center"><input type="radio" class="transcript-cb" data-vid="${v.id}" data-ptitle="${escHtml(p.title)}"${checked}></td>`;
       } else {
         tCell = '<td></td>';
       }
@@ -853,13 +860,17 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     h += '</tbody></table>';
     panel.innerHTML = h;
 
-    // Bind transcript checkboxes
+    // Bind transcript radio toggles
     panel.querySelectorAll('.transcript-cb').forEach(cb => {
-      cb.addEventListener('change', e => {
+      cb.addEventListener('click', e => {
         const vid = e.target.dataset.vid;
         const ptitle = e.target.dataset.ptitle;
-        if (e.target.checked) transcriptSel[vid] = ptitle;
-        else delete transcriptSel[vid];
+        if (transcriptSel[vid]) {
+          delete transcriptSel[vid];
+          e.target.checked = false;
+        } else {
+          transcriptSel[vid] = ptitle;
+        }
         saveTranscriptSel();
         updateTopbarEnrich();
       });
