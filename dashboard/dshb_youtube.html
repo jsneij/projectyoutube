@@ -699,7 +699,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     const vidCols = [
       { k: '_idx',            l: '#',        w: '40px', align: 'right' },
       { k: '_transcript',     l: 'T',        w: '30px', align: 'center' },
-      ...(showCovers ? [{ k: '_cover', l: '', w: '50px' }] : []),
+      ...(showCovers ? [{ k: '_cover', l: '', w: '88px' }] : []),
       { k: 'title',           l: 'title',    w: ''      },
       { k: 'channel',         l: 'channel',  w: '110px' },
       { k: '_playlist',       l: 'playlist', w: '120px' },
@@ -743,7 +743,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       h += tCell;
       if (showCovers) {
         const thumb = v.id ? `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg` : '';
-        h += `<td style="padding:2px 4px"><img src="${thumb}" alt="" loading="lazy" style="width:80px;height:auto;object-fit:contain;border-radius:2px;display:block"></td>`;
+        h += `<td style="padding:2px 4px"><img src="${thumb}" alt="" loading="lazy" style="width:80px;aspect-ratio:16/9;object-fit:cover;border-radius:2px;display:block"></td>`;
       }
       h += `<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><a href="${url}" target="_blank" title="${escHtml(v.title)}">${titleHtml}</a></td>`;
       h += `<td class="ch" title="${escHtml(v.channel)}">${escHtml(v.channel || '—')}</td>`;
@@ -832,7 +832,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     const vidCols = [
       { k: '_idx', l: '#', w: '56px', align: 'right' },
       { k: '_transcript', l: 'T', w: '30px', align: 'center' },
-      ...(showCovers ? [{ k: '_cover', l: '', w: '50px' }] : []),
+      ...(showCovers ? [{ k: '_cover', l: '', w: '88px' }] : []),
       { k: 'title', l: 'title', w: '' },
       { k: 'channel', l: 'channel', w: '120px' },
       { k: 'duration_seconds', l: 'dur', w: '70px' },
@@ -878,7 +878,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       h += tCell;
       if (showCovers) {
         const thumb = v.id ? `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg` : '';
-        h += `<td style="padding:2px 4px"><img src="${thumb}" alt="" loading="lazy" style="width:80px;height:auto;object-fit:contain;border-radius:2px;display:block"></td>`;
+        h += `<td style="padding:2px 4px"><img src="${thumb}" alt="" loading="lazy" style="width:80px;aspect-ratio:16/9;object-fit:cover;border-radius:2px;display:block"></td>`;
       }
       h += `<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><a href="${url}" target="_blank" title="${escHtml(v.title)}">${titleHtml}</a></td>`;
       h += `<td class="ch" title="${escHtml(v.channel)}">${chHtml}</td>`;
