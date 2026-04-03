@@ -206,6 +206,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     <div class="sep"></div>
     <span id="topbar-fetch" style="font-family:var(--mono);font-size:10px;color:var(--fg3)"><span style="color:var(--accent)">last fetch</span> <span id="topbar-fetch-date"></span></span>
     <span id="topbar-unenriched" style="font-family:var(--mono);font-size:10px;color:var(--fg3);display:none"><span class="sep" style="display:inline-block;width:1px;height:14px;background:var(--border2);vertical-align:middle;margin:0 12px"></span><span id="unenriched-count" style="color:var(--accent)"></span> <a id="enrich-btn" href="https://github.com/jsneij/projectyoutube/actions/workflows/enrich_missing_10.yml" target="_blank" style="display:none;margin-left:6px;font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:var(--accent-dim);color:var(--accent);text-decoration:none;border:1px solid var(--accent);cursor:pointer">enrich</a></span>
+    <span id="topbar-transcripts" style="font-family:var(--mono);font-size:10px;color:var(--fg3);display:none"><span class="sep" style="display:inline-block;width:1px;height:14px;background:var(--border2);vertical-align:middle;margin:0 12px"></span><span id="transcript-count" style="color:#4caf50"></span> <a id="transcript-btn" href="#" style="display:none;margin-left:6px;font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(76,175,80,0.10);color:#4caf50;text-decoration:none;border:1px solid #4caf50;cursor:pointer">paste ids and run</a></span>
     <span style="margin-left:auto"><a href="https://github.com/jsneij/projectyoutube/actions/workflows/fetch_youtube_data.yml" target="_blank" style="font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:var(--bg3);color:var(--fg3);text-decoration:none;border:1px solid var(--border2);cursor:pointer">fetch</a></span>
   </div>
 
@@ -340,9 +341,6 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
   }
   function transcriptSelCount() { return Object.keys(transcriptSel).length; }
 
-  function sanitizePath(s) {
-    return s.replace(/[/\\:*?"<>|]/g, '_').replace(/^[.\s]+|[.\s]+$/g, '') || '_';
-  }
 
   function fmtNum(n) {
     if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
@@ -386,32 +384,20 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
   const unenrichedCount = playlists.reduce((s, p) => s + p.vids.filter(v => !v.enriched).length, 0);
 
-  function buildWorkflowUrl(workflowFile, transcriptIds) {
-    const base = `https://github.com/jsneij/projectyoutube/actions/workflows/${workflowFile}`;
-    if (!transcriptIds) return base;
-    return `${base}?${encodeURIComponent('inputs[transcript_ids]')}=${encodeURIComponent(transcriptIds)}`;
-  }
-
   function updateTopbarEnrich() {
-    const tCount = transcriptSelCount();
-    const total = unenrichedCount + tCount;
     const el = document.getElementById('topbar-unenriched');
     const countEl = document.getElementById('unenriched-count');
     const enrichBtn = document.getElementById('enrich-btn');
-    if (total === 0) {
+    if (unenrichedCount === 0) {
       el.style.display = 'none';
       return;
     }
     el.style.display = 'inline';
-    const parts = [];
-    if (unenrichedCount > 0) parts.push(`${unenrichedCount} unenriched`);
-    if (tCount > 0) parts.push(`${tCount} transcripts`);
-    countEl.innerHTML = parts.join(' · ');
+    countEl.textContent = unenrichedCount + ' unenriched';
     enrichBtn.style.display = 'inline';
-    const ids = tCount > 0 ? Object.keys(transcriptSel).join(',') : '';
-    const workflowFile = total <= 10 ? 'enrich_missing_10.yml' : 'enrich_missing.yml';
-    enrichBtn.href = buildWorkflowUrl(workflowFile, ids);
-    if (total <= 10) {
+    const workflowFile = unenrichedCount <= 10 ? 'enrich_missing_10.yml' : 'enrich_missing.yml';
+    enrichBtn.href = 'https://github.com/jsneij/projectyoutube/actions/workflows/' + workflowFile;
+    if (unenrichedCount <= 10) {
       enrichBtn.style.background = 'var(--accent-dim)';
       enrichBtn.style.color = 'var(--accent)';
       enrichBtn.style.borderColor = 'var(--accent)';
@@ -420,9 +406,34 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       enrichBtn.style.color = 'var(--fg3)';
       enrichBtn.style.borderColor = 'var(--border2)';
     }
-    enrichBtn.onclick = null;
+  }
+
+  function updateTopbarTranscripts() {
+    const tCount = transcriptSelCount();
+    const el = document.getElementById('topbar-transcripts');
+    const countEl = document.getElementById('transcript-count');
+    const btn = document.getElementById('transcript-btn');
+    if (tCount === 0) {
+      el.style.display = 'none';
+      return;
+    }
+    el.style.display = 'inline';
+    countEl.textContent = tCount + ' transcript' + (tCount !== 1 ? 's' : '');
+    btn.style.display = 'inline';
+    btn.onclick = async (e) => {
+      e.preventDefault();
+      const ids = Object.keys(transcriptSel).join(',');
+      try {
+        await navigator.clipboard.writeText(ids);
+        const orig = btn.textContent;
+        btn.textContent = 'copied!';
+        setTimeout(() => { btn.textContent = orig; }, 1500);
+      } catch {}
+      window.open('https://github.com/jsneij/projectyoutube/actions/workflows/enrich_missing_10.yml', '_blank');
+    };
   }
   updateTopbarEnrich();
+  updateTopbarTranscripts();
 
   function renderStats() {
     const visPlaylists = playlists.filter(p => (!skipZero || p.n > 0));
@@ -703,8 +714,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
       let tCell = '';
       if (v.transcript) {
-        const pFolder = sanitizePath(v._playlistTitle);
-        const tUrl = `../TRANSCRIPTS/${encodeURIComponent(pFolder)}/${v.id}.txt`;
+        const tUrl = `../TRANSCRIPTS/${v.id}.txt`;
         tCell = `<td style="text-align:center"><a href="${tUrl}" target="_blank" title="View transcript" style="color:#4caf50;text-decoration:none;font-size:14px">&#10003;</a></td>`;
       } else if (v.enriched) {
         const checked = transcriptSel[v.id] ? ' checked' : '';
@@ -741,6 +751,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
         }
         saveTranscriptSel();
         updateTopbarEnrich();
+        updateTopbarTranscripts();
       });
     });
 
@@ -826,7 +837,6 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     }
     h += '</tr></thead><tbody>';
 
-    const pFolder = sanitizePath(p.title);
     vidsToShow.forEach((v, i) => {
       const url = v.id ? `https://www.youtube.com/watch?v=${v.id}` : '#';
       const titleHtml = term ? highlight(v.title, searchTerm.trim()) : escHtml(v.title);
@@ -835,7 +845,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
       let tCell = '';
       if (v.transcript) {
-        const tUrl = `../TRANSCRIPTS/${encodeURIComponent(pFolder)}/${v.id}.txt`;
+        const tUrl = `../TRANSCRIPTS/${v.id}.txt`;
         tCell = `<td style="text-align:center"><a href="${tUrl}" target="_blank" title="View transcript" style="color:#4caf50;text-decoration:none;font-size:14px">&#10003;</a></td>`;
       } else if (v.enriched) {
         const checked = transcriptSel[v.id] ? ' checked' : '';
@@ -872,6 +882,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
         }
         saveTranscriptSel();
         updateTopbarEnrich();
+        updateTopbarTranscripts();
       });
     });
 

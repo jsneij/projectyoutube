@@ -36,10 +36,6 @@ jobs:
           YT_API_KEY: ${{ secrets.YT_API_KEY }}
         run: python3 scripts/fetch_youtube_playlists.py --fast
 
-      - name: Clean up cookies
-        if: always()
-        run: rm -f /tmp/cookies.txt
-
       - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"
@@ -52,3 +48,57 @@ jobs:
             git pull --rebase
             git push
           fi
+
+      - name: Count unenriched videos
+        id: count-unenriched
+        run: |
+          COUNT=$(python3 -c "
+          import json
+          with open('data/youtube_playlists_compact.json') as f:
+              data = json.load(f)
+          print(sum(1 for p in data.get('playlists',[]) if not p.get('deleted') for v in p.get('videos',[]) if v.get('enriched')==False))
+          ")
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "Unenriched videos: $COUNT"
+
+      - name: Enrich missing videos (auto)
+        if: >-
+          fromJSON(steps.count-unenriched.outputs.count) > 0 &&
+          fromJSON(steps.count-unenriched.outputs.count) <= 10
+        env:
+          YTDLP_PATH: yt-dlp
+          YTDLP_COOKIES_FILE: /tmp/cookies.txt
+          YT_API_KEY: ${{ secrets.YT_API_KEY }}
+        run: python3 scripts/fetch_youtube_playlists.py --enrich-only
+
+      - name: Commit enriched data
+        if: >-
+          fromJSON(steps.count-unenriched.outputs.count) > 0 &&
+          fromJSON(steps.count-unenriched.outputs.count) <= 10
+        run: |
+          git add data/
+          if git diff --cached --quiet; then
+            echo "No enrichment changes — skipping commit."
+          else
+            git commit -m "chore: auto-enrich missing video metadata"
+            git pull --rebase
+            git push
+          fi
+
+      - name: Sync transcript fields
+        run: python3 scripts/fetch_youtube_playlists.py --sync-transcripts
+
+      - name: Commit transcript sync
+        run: |
+          git add data/
+          if git diff --cached --quiet; then
+            echo "No transcript sync changes — skipping commit."
+          else
+            git commit -m "chore: sync transcript fields"
+            git pull --rebase
+            git push
+          fi
+
+      - name: Clean up cookies
+        if: always()
+        run: rm -f /tmp/cookies.txt

@@ -1107,13 +1107,6 @@ def structural_update(existing: dict, new_title: str) -> tuple[dict, dict]:
 
 # ── Transcript fetch ──────────────────────────────────────────────────────────
 
-def _sanitize_folder_name(name: str) -> str:
-    """Sanitize a playlist title for use as a filesystem folder name."""
-    s = re.sub(r'[/\\:*?"<>|]', '_', name)
-    s = s.strip('. ')
-    return s or '_'
-
-
 def _srt_to_text(srt_content: str) -> str:
     """Convert SRT subtitle content to plain text (strip timestamps, tags)."""
     lines = []
@@ -1133,15 +1126,15 @@ def _srt_to_text(srt_content: str) -> str:
 
 def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
     """Download subtitles for the given video IDs and save as plain text."""
-    # Build lookup: video_id -> (playlist_title, video_dict)
-    vid_lookup: dict[str, list[tuple[str, dict]]] = {}
+    # Build lookup: video_id -> video_dict
+    vid_lookup: dict[str, dict] = {}
     for p in data.get("playlists", []):
         if p.get("deleted"):
             continue
         for v in p.get("videos", []):
             vid = v.get("video_id")
-            if vid:
-                vid_lookup.setdefault(vid, []).append((p.get("title", "Unknown"), v))
+            if vid and vid not in vid_lookup:
+                vid_lookup[vid] = v
 
     requested = [vid for vid in video_ids if vid in vid_lookup]
     if not requested:
@@ -1152,17 +1145,15 @@ def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
     fetched = 0
 
     for vid_id in requested:
-        playlist_title, video = vid_lookup[vid_id][0]
-        folder_name = _sanitize_folder_name(playlist_title)
-        out_dir = TRANSCRIPTS_DIR / folder_name
-        txt_path = out_dir / f"{vid_id}.txt"
+        video = vid_lookup[vid_id]
+        txt_path = TRANSCRIPTS_DIR / f"{vid_id}.txt"
 
         if txt_path.exists():
             print(f"    {vid_id}: already exists — skipping")
             video["transcript"] = True
             continue
 
-        os.makedirs(out_dir, exist_ok=True)
+        os.makedirs(TRANSCRIPTS_DIR, exist_ok=True)
         url = f"https://www.youtube.com/watch?v={vid_id}"
         cmd = [
             YTDLP,
@@ -1171,7 +1162,7 @@ def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
             "--skip-download",
             "--convert-subs", "srt",
             "--ignore-no-formats-error",
-            "-o", str(out_dir / "%(id)s"),
+            "-o", str(TRANSCRIPTS_DIR / "%(id)s"),
             url,
         ]
         if COOKIES_FILE:
@@ -1189,7 +1180,7 @@ def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
             continue
 
         # Find the downloaded .srt file (may have language suffix)
-        srt_files = list(out_dir.glob(f"{vid_id}*.srt"))
+        srt_files = list(TRANSCRIPTS_DIR.glob(f"{vid_id}*.srt"))
         if not srt_files:
             print(f"    {vid_id}: no subtitles found")
             continue
@@ -1206,7 +1197,7 @@ def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
         txt_path.write_text(plain_text, encoding="utf-8")
         srt_file.unlink(missing_ok=True)
         # Clean up any other intermediate subtitle files
-        for f in out_dir.glob(f"{vid_id}*.vtt"):
+        for f in TRANSCRIPTS_DIR.glob(f"{vid_id}*.vtt"):
             f.unlink(missing_ok=True)
 
         video["transcript"] = True
@@ -1215,6 +1206,44 @@ def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
         time.sleep(1.5)
 
     print(f"  {GREEN}✓ {fetched} transcripts fetched{RESET}")
+
+
+def run_transcript_sync(data: dict) -> bool:
+    """Sync transcript fields with TRANSCRIPTS/ folder on disk.
+
+    Returns True if any changes were made.
+    """
+    if not TRANSCRIPTS_DIR.exists():
+        return False
+
+    existing_files: set[str] = {p.stem for p in TRANSCRIPTS_DIR.rglob("*.txt")}
+
+    changes = 0
+    for p in data.get("playlists", []):
+        if p.get("deleted"):
+            continue
+        for v in p.get("videos", []):
+            vid = v.get("video_id")
+            if not vid:
+                continue
+            has_file = vid in existing_files
+            has_field = v.get("transcript", False)
+
+            if has_field and not has_file:
+                v["transcript"] = False
+                changes += 1
+                print(f"  sync: {vid} transcript=true but file missing → false")
+            elif has_file and not has_field:
+                v["transcript"] = True
+                changes += 1
+                print(f"  sync: {vid} file exists but transcript=false → true")
+
+    if changes:
+        print(f"  {GREEN}sync: {changes} transcript field(s) updated{RESET}")
+    else:
+        print("  sync: all transcript fields in sync")
+
+    return changes > 0
 
 
 # ── Enrichment pass ───────────────────────────────────────────────────────────
@@ -1432,6 +1461,21 @@ def main():
         if idx + 1 < len(sys.argv):
             transcript_ids = [v.strip() for v in sys.argv[idx + 1].split(",")
                               if v.strip()]
+
+    # ── [--sync-transcripts] Reconcile JSON transcript fields with TRANSCRIPTS/
+    if "--sync-transcripts" in sys.argv:
+        data = load_existing()
+        if data is None:
+            print("ERROR: No existing JSON found.", file=sys.stderr)
+            sys.exit(1)
+        print("Syncing transcript fields with TRANSCRIPTS/ folder...")
+        changed = run_transcript_sync(data)
+        if changed:
+            save_output(data)
+            print("  JSON updated.")
+        else:
+            print("  No changes needed.")
+        sys.exit(0)
 
     # ── [--transcript-ids only] No sync or enrichment, just fetch transcripts
     if transcript_ids and not enrich_only_mode and "--fast" not in sys.argv and "--structural" not in sys.argv and "--enrich" not in sys.argv:
