@@ -1244,11 +1244,8 @@ def run_transcript_sync(data: dict) -> bool:
 
     Returns True if any changes were made.
     """
-    if not TRANSCRIPTS_DIR.exists():
-        return False
-
-    # Collect all transcript filenames
-    all_files = [f.name for f in TRANSCRIPTS_DIR.glob("*.txt")]
+    # Collect all transcript filenames (empty if dir doesn't exist)
+    all_files = [f.name for f in TRANSCRIPTS_DIR.glob("*.txt")] if TRANSCRIPTS_DIR.exists() else []
 
     # Collect all known video IDs
     all_vids: set[str] = set()
