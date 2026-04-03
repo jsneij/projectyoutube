@@ -1,25 +1,29 @@
 {
-  "run_at": "2026-04-03T06:52:03.366028+00:00",
+  "run_at": "2026-04-03T11:34:46.314528+00:00",
   "is_first_run": false,
   "enrich_mode": false,
-  "playlists_new": [],
+  "playlists_new": [
+    {
+      "playlist_id": "PLiWBEZWrNsNh7vfkaqBwELMslaLWkbxx8",
+      "title": "Lenny's Podcast",
+      "video_count": 1
+    }
+  ],
   "playlists_deleted": [],
   "playlists_updated": [
     {
-      "playlist_id": "LL",
-      "title": "Liked videos",
+      "playlist_id": "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1",
+      "title": "AI Claude",
       "videos_added": [
-        "HWq9cFhTvvQ"
+        "wc8FBhQtdsA"
       ],
-      "videos_removed": [
-        "g1NPhWwnObc"
-      ]
+      "videos_removed": []
     }
   ],
   "playlists_unchanged": [
     {
-      "playlist_id": "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1",
-      "title": "AI Claude"
+      "playlist_id": "LL",
+      "title": "Liked videos"
     },
     {
       "playlist_id": "WL",
@@ -410,7 +414,7 @@
       "title": "Philosophy"
     }
   ],
-  "total_playlists": 99,
-  "total_videos": 2939,
-  "duration_seconds": 241.5
+  "total_playlists": 100,
+  "total_videos": 2941,
+  "duration_seconds": 270.2
 }

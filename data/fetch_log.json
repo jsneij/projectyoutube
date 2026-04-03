@@ -1,8 +1,44 @@
 {
-  "fetched_at": "2026-04-03T06:56:04.863315+00:00",
-  "total_playlists": 99,
-  "total_videos": 2939,
+  "fetched_at": "2026-04-03T11:39:16.510081+00:00",
+  "total_playlists": 100,
+  "total_videos": 2941,
   "playlists": {
+    "PLiWBEZWrNsNh7vfkaqBwELMslaLWkbxx8": {
+      "title": "Lenny's Podcast",
+      "video_count": 1,
+      "video_ids": [
+        "wc8FBhQtdsA"
+      ]
+    },
+    "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1": {
+      "title": "AI Claude",
+      "video_count": 23,
+      "video_ids": [
+        "CEvIs9y1uog",
+        "ntDIxaeo3Wg",
+        "QoQBzR1NIqI",
+        "bjdBVZa66oU",
+        "Ii99RU3mOJM",
+        "ZlDnsf_DOzg",
+        "Y09u_S3w2c8",
+        "F4zSxfBe5R0",
+        "6-D3fg3JUL4",
+        "We7BZVKbCVw",
+        "eh8bcBIAAFo",
+        "wQ0duoTeAAU",
+        "4u94juYwLLM",
+        "Ko7_tC1fMMM",
+        "4CiCwvAA5FI",
+        "91AJ0cpgLlQ",
+        "uULvhQrKB_c",
+        "-9uojnGzcJo",
+        "-ttbXFWb8mg",
+        "63Kr3HFECHM",
+        "nVnxG10D5W0",
+        "dYG8JxtSgmM",
+        "wc8FBhQtdsA"
+      ]
+    },
     "LL": {
       "title": "Liked videos",
       "video_count": 136,
@@ -143,34 +179,6 @@
         "AAHc0ZSHfV8",
         "9iz98yficE4",
         "uwYDelmAq9w"
-      ]
-    },
-    "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1": {
-      "title": "AI Claude",
-      "video_count": 22,
-      "video_ids": [
-        "CEvIs9y1uog",
-        "ntDIxaeo3Wg",
-        "QoQBzR1NIqI",
-        "bjdBVZa66oU",
-        "Ii99RU3mOJM",
-        "ZlDnsf_DOzg",
-        "Y09u_S3w2c8",
-        "F4zSxfBe5R0",
-        "6-D3fg3JUL4",
-        "We7BZVKbCVw",
-        "eh8bcBIAAFo",
-        "wQ0duoTeAAU",
-        "4u94juYwLLM",
-        "Ko7_tC1fMMM",
-        "4CiCwvAA5FI",
-        "91AJ0cpgLlQ",
-        "uULvhQrKB_c",
-        "-9uojnGzcJo",
-        "-ttbXFWb8mg",
-        "63Kr3HFECHM",
-        "nVnxG10D5W0",
-        "dYG8JxtSgmM"
       ]
     },
     "WL": {
