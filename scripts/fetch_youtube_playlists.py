@@ -1107,6 +1107,22 @@ def structural_update(existing: dict, new_title: str) -> tuple[dict, dict]:
 
 # ── Transcript fetch ──────────────────────────────────────────────────────────
 
+def _safe_title(title: str) -> str:
+    """Sanitize a video title for use in a filename."""
+    s = re.sub(r'[/\\:*?"<>|]', '', title)
+    s = s.strip('. ')
+    return s or 'untitled'
+
+
+def _transcript_filename(video_id: str, title: str, channel: str = "") -> str:
+    """Build transcript filename: '{channel} - {video_id} {title}.txt'."""
+    ch = _safe_title(channel) if channel else ""
+    ti = _safe_title(title)
+    if ch:
+        return f"{ch} - {video_id} {ti}.txt"
+    return f"{video_id} {ti}.txt"
+
+
 def _srt_to_text(srt_content: str) -> str:
     """Convert SRT subtitle content to plain text (strip timestamps, tags)."""
     lines = []
@@ -1146,11 +1162,15 @@ def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
 
     for vid_id in requested:
         video = vid_lookup[vid_id]
-        txt_path = TRANSCRIPTS_DIR / f"{vid_id}.txt"
+        fname = _transcript_filename(vid_id, video.get("title", ""), video.get("channel", ""))
+        txt_path = TRANSCRIPTS_DIR / fname
 
-        if txt_path.exists():
+        # Also check for any existing file containing this video_id
+        existing = list(TRANSCRIPTS_DIR.glob(f"*{vid_id}*.txt")) if TRANSCRIPTS_DIR.exists() else []
+        if existing:
             print(f"    {vid_id}: already exists — skipping")
             video["transcript"] = True
+            video["transcript_file"] = existing[0].name
             continue
 
         os.makedirs(TRANSCRIPTS_DIR, exist_ok=True)
@@ -1201,6 +1221,7 @@ def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
             f.unlink(missing_ok=True)
 
         video["transcript"] = True
+        video["transcript_file"] = fname
         fetched += 1
         print(f"    {GREEN}✓{RESET} {vid_id}: {video.get('title', '')[:50]}")
         time.sleep(1.5)
@@ -1216,7 +1237,26 @@ def run_transcript_sync(data: dict) -> bool:
     if not TRANSCRIPTS_DIR.exists():
         return False
 
-    existing_files: set[str] = {p.stem for p in TRANSCRIPTS_DIR.rglob("*.txt")}
+    # Collect all transcript filenames
+    all_files = [f.name for f in TRANSCRIPTS_DIR.glob("*.txt")]
+
+    # Collect all known video IDs
+    all_vids: set[str] = set()
+    for p in data.get("playlists", []):
+        if p.get("deleted"):
+            continue
+        for v in p.get("videos", []):
+            vid = v.get("video_id")
+            if vid:
+                all_vids.add(vid)
+
+    # Build map: video_id -> filename by checking which vid appears in each filename
+    file_by_vid: dict[str, str] = {}
+    for fname in all_files:
+        for vid in all_vids:
+            if vid in fname:
+                file_by_vid[vid] = fname
+                break
 
     changes = 0
     for p in data.get("playlists", []):
@@ -1226,15 +1266,17 @@ def run_transcript_sync(data: dict) -> bool:
             vid = v.get("video_id")
             if not vid:
                 continue
-            has_file = vid in existing_files
+            has_file = vid in file_by_vid
             has_field = v.get("transcript", False)
 
             if has_field and not has_file:
                 v["transcript"] = False
+                v.pop("transcript_file", None)
                 changes += 1
                 print(f"  sync: {vid} transcript=true but file missing → false")
             elif has_file and not has_field:
                 v["transcript"] = True
+                v["transcript_file"] = file_by_vid[vid]
                 changes += 1
                 print(f"  sync: {vid} file exists but transcript=false → true")
 

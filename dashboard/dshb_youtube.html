@@ -278,6 +278,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       members_only: v.members_only || false,
       enriched: v.enriched !== false,
       transcript: v.transcript || false,
+      transcript_file: v.transcript_file || '',
       subtitles_available: v.subtitles_available || false,
     }));
 
@@ -714,7 +715,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
       let tCell = '';
       if (v.transcript) {
-        const tUrl = `../TRANSCRIPTS/${v.id}.txt`;
+        const tUrl = `../TRANSCRIPTS/${encodeURIComponent(v.transcript_file || v.id + '.txt')}`;
         tCell = `<td style="text-align:center"><a href="${tUrl}" target="_blank" title="View transcript" style="color:#4caf50;text-decoration:none;font-size:14px">&#10003;</a></td>`;
       } else if (v.enriched) {
         const checked = transcriptSel[v.id] ? ' checked' : '';
@@ -845,7 +846,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
       let tCell = '';
       if (v.transcript) {
-        const tUrl = `../TRANSCRIPTS/${v.id}.txt`;
+        const tUrl = `../TRANSCRIPTS/${encodeURIComponent(v.transcript_file || v.id + '.txt')}`;
         tCell = `<td style="text-align:center"><a href="${tUrl}" target="_blank" title="View transcript" style="color:#4caf50;text-decoration:none;font-size:14px">&#10003;</a></td>`;
       } else if (v.enriched) {
         const checked = transcriptSel[v.id] ? ' checked' : '';
