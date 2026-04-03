@@ -1228,15 +1228,15 @@ def _srt_to_text(content: str, chapters: list[dict] | None = None) -> str:
 
 def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
     """Download subtitles for the given video IDs and save as plain text."""
-    # Build lookup: video_id -> video_dict
-    vid_lookup: dict[str, dict] = {}
+    # Build lookup: video_id -> list of all video dicts (across playlists)
+    vid_lookup: dict[str, list[dict]] = {}
     for p in data.get("playlists", []):
         if p.get("deleted"):
             continue
         for v in p.get("videos", []):
             vid = v.get("video_id")
-            if vid and vid not in vid_lookup:
-                vid_lookup[vid] = v
+            if vid:
+                vid_lookup.setdefault(vid, []).append(v)
 
     requested = [vid for vid in video_ids if vid in vid_lookup]
     if not requested:
@@ -1247,7 +1247,8 @@ def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
     fetched = 0
 
     for vid_id in requested:
-        video = vid_lookup[vid_id]
+        videos = vid_lookup[vid_id]
+        video = videos[0]  # use first for metadata
         fname = _transcript_filename(vid_id, video.get("title", ""), video.get("channel", ""),
                                      video.get("upload_date", ""))
         txt_path = TRANSCRIPTS_DIR / fname
@@ -1256,8 +1257,9 @@ def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
         existing = list(TRANSCRIPTS_DIR.glob(f"*{vid_id}*.txt")) if TRANSCRIPTS_DIR.exists() else []
         if existing:
             print(f"    {vid_id}: already exists — skipping")
-            video["transcript"] = True
-            video["transcript_file"] = existing[0].name
+            for v in videos:
+                v["transcript"] = True
+                v["transcript_file"] = existing[0].name
             continue
 
         os.makedirs(TRANSCRIPTS_DIR, exist_ok=True)
@@ -1327,8 +1329,9 @@ def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
 
         txt_path.write_text(plain_text, encoding="utf-8")
 
-        video["transcript"] = True
-        video["transcript_file"] = fname
+        for v in videos:
+            v["transcript"] = True
+            v["transcript_file"] = fname
         fetched += 1
         print(f"    {GREEN}✓{RESET} {vid_id}: {video.get('title', '')[:50]}")
         time.sleep(1.5)
