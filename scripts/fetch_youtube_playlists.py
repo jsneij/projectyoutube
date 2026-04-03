@@ -1141,8 +1141,8 @@ def _fmt_ts(seconds: int) -> str:
     return f"[{h:02d}:{m:02d}:{s:02d}]"
 
 
-def _srt_to_text(content: str) -> str:
-    """Convert SRT/VTT subtitle content to timestamped paragraphs."""
+def _srt_to_text(content: str, chapters: list[dict] | None = None) -> str:
+    """Convert SRT/VTT subtitle content to timestamped paragraphs with chapters."""
     import html
 
     # Parse cues: list of (start_seconds, text_lines)
@@ -1174,18 +1174,46 @@ def _srt_to_text(content: str) -> str:
     if not cues:
         return ""
 
-    # Deduplicate and merge into paragraphs every ~30 seconds
+    # Build sorted chapter list: [(start_seconds, title), ...]
+    ch_list: list[tuple[int, str]] = []
+    if chapters:
+        for ch in chapters:
+            ch_list.append((int(ch.get("start_time", 0)), ch.get("title", "")))
+        ch_list.sort(key=lambda x: x[0])
+
+    # Deduplicate and merge into paragraphs
+    # With chapters: break at each chapter boundary
+    # Without chapters: break every ~30 seconds
     PARA_INTERVAL = 30
     seen: set[str] = set()
     paragraphs: list[str] = []
     para_ts = cues[0][0]
     para_words: list[str] = []
+    ch_idx = 0  # next chapter to emit
+
+    def _flush_para():
+        if para_words:
+            paragraphs.append(f"{_fmt_ts(para_ts)} {' '.join(para_words)}")
 
     for ts, lines in cues:
-        # Start a new paragraph if enough time has passed
-        if ts - para_ts >= PARA_INTERVAL and para_words:
-            paragraphs.append(f"{_fmt_ts(para_ts)} {' '.join(para_words)}")
+        # Check if we've crossed into a new chapter
+        if ch_list and ch_idx < len(ch_list) and ts >= ch_list[ch_idx][0]:
+            _flush_para()
             para_words = []
+            ch_ts, ch_title = ch_list[ch_idx]
+            paragraphs.append(f"--- {_fmt_ts(ch_ts)} {ch_title} ---")
+            para_ts = ts
+            ch_idx += 1
+            # Skip any chapters we've already passed
+            while ch_idx < len(ch_list) and ch_list[ch_idx][0] <= ts:
+                ch_idx += 1
+        # Without chapters, break every ~30 seconds
+        elif not ch_list and ts - para_ts >= PARA_INTERVAL and para_words:
+            _flush_para()
+            para_words = []
+            para_ts = ts
+
+        if not para_words:
             para_ts = ts
 
         for line in lines:
@@ -1193,8 +1221,7 @@ def _srt_to_text(content: str) -> str:
                 seen.add(line)
                 para_words.append(line)
 
-    if para_words:
-        paragraphs.append(f"{_fmt_ts(para_ts)} {' '.join(para_words)}")
+    _flush_para()
 
     return "\n\n".join(paragraphs)
 
@@ -1235,6 +1262,24 @@ def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
 
         os.makedirs(TRANSCRIPTS_DIR, exist_ok=True)
         url = f"https://www.youtube.com/watch?v={vid_id}"
+
+        # Fetch chapters via --dump-json
+        chapters: list[dict] = []
+        json_cmd = [YTDLP, "--dump-json", "--skip-download",
+                    "--ignore-no-formats-error", url]
+        if COOKIES_FILE:
+            json_cmd += ["--cookies", COOKIES_FILE]
+        else:
+            json_cmd += ["--cookies-from-browser", BROWSER]
+        try:
+            result = subprocess.run(json_cmd, capture_output=True, text=True, timeout=30)
+            if result.returncode == 0 and result.stdout.strip():
+                meta = json.loads(result.stdout)
+                chapters = meta.get("chapters") or []
+        except Exception:
+            pass  # chapters are optional, proceed without
+
+        # Download subtitles
         cmd = [
             YTDLP,
             "--write-subs", "--write-auto-subs",
@@ -1268,7 +1313,7 @@ def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
 
         sub_file = sub_files[0]
         sub_content = sub_file.read_text(encoding="utf-8", errors="replace")
-        plain_text = _srt_to_text(sub_content)
+        plain_text = _srt_to_text(sub_content, chapters)
 
         # Clean up ALL intermediate subtitle files regardless of outcome
         for f in TRANSCRIPTS_DIR.glob(f"{vid_id}*.srt"):
