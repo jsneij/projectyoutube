@@ -704,7 +704,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
         const pFolder = sanitizePath(v._playlistTitle);
         const tUrl = `../TRANSCRIPTS/${encodeURIComponent(pFolder)}/${v.id}.txt`;
         tCell = `<td style="text-align:center"><a href="${tUrl}" target="_blank" title="View transcript" style="color:#4caf50;text-decoration:none;font-size:14px">&#10003;</a></td>`;
-      } else if (v.subtitles_available && v.enriched) {
+      } else if (v.enriched) {
         const checked = transcriptSel[v.id] ? ' checked' : '';
         tCell = `<td style="text-align:center"><input type="checkbox" class="transcript-cb" data-vid="${v.id}" data-ptitle="${escHtml(v._playlistTitle)}"${checked} style="accent-color:var(--accent);cursor:pointer"></td>`;
       } else {
@@ -831,7 +831,7 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
       if (v.transcript) {
         const tUrl = `../TRANSCRIPTS/${encodeURIComponent(pFolder)}/${v.id}.txt`;
         tCell = `<td style="text-align:center"><a href="${tUrl}" target="_blank" title="View transcript" style="color:#4caf50;text-decoration:none;font-size:14px">&#10003;</a></td>`;
-      } else if (v.subtitles_available && v.enriched) {
+      } else if (v.enriched) {
         const checked = transcriptSel[v.id] ? ' checked' : '';
         tCell = `<td style="text-align:center"><input type="checkbox" class="transcript-cb" data-vid="${v.id}" data-ptitle="${escHtml(p.title)}"${checked} style="accent-color:var(--accent);cursor:pointer"></td>`;
       } else {
