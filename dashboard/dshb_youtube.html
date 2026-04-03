@@ -485,7 +485,8 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
           const v = p.vids[i];
           if (skipLocked && v.members_only) continue;
           const isLocked = term === '#locked' && v.members_only;
-          if (isLocked || v.title.toLowerCase().includes(term) || v.channel.toLowerCase().includes(term)) {
+          const isTranscript = term === '#transcripts' && (v.transcript || transcriptSel[v.id]);
+          if (isLocked || isTranscript || v.title.toLowerCase().includes(term) || v.channel.toLowerCase().includes(term)) {
             matchedVidIdx.push(i);
           }
         }
@@ -666,7 +667,8 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
         if (skipLocked && v.members_only) continue;
         if (filterTranscripts && !v.transcript && !transcriptSel[v.id]) continue;
         const isLocked = term === '#locked' && v.members_only;
-        if (isLocked || v.title.toLowerCase().includes(term) || v.channel.toLowerCase().includes(term)) {
+        const isTranscript = term === '#transcripts' && (v.transcript || transcriptSel[v.id]);
+        if (isLocked || isTranscript || v.title.toLowerCase().includes(term) || v.channel.toLowerCase().includes(term)) {
           allMatched.push({ ...v, _playlistTitle: p.title, _playlistId: p.id });
         }
       }
