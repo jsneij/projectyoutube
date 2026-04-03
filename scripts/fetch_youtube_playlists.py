@@ -1123,29 +1123,81 @@ def _transcript_filename(video_id: str, title: str, channel: str = "") -> str:
     return f"{video_id} {ti}.txt"
 
 
+def _parse_ts_seconds(ts: str) -> int:
+    """Parse HH:MM:SS or MM:SS timestamp to total seconds."""
+    parts = ts.split(":")
+    if len(parts) == 3:
+        return int(parts[0]) * 3600 + int(parts[1]) * 60 + int(float(parts[2]))
+    if len(parts) == 2:
+        return int(parts[0]) * 60 + int(float(parts[1]))
+    return 0
+
+
+def _fmt_ts(seconds: int) -> str:
+    """Format seconds as [H:MM:SS] or [M:SS]."""
+    h, r = divmod(seconds, 3600)
+    m, s = divmod(r, 60)
+    if h > 0:
+        return f"[{h}:{m:02d}:{s:02d}]"
+    return f"[{m}:{s:02d}]"
+
+
 def _srt_to_text(content: str) -> str:
-    """Convert SRT/VTT subtitle content to clean plain text."""
+    """Convert SRT/VTT subtitle content to timestamped paragraphs."""
     import html
-    seen: set[str] = set()
-    lines: list[str] = []
+
+    # Parse cues: list of (start_seconds, text_lines)
+    cues: list[tuple[int, list[str]]] = []
+    current_ts = 0
+    current_lines: list[str] = []
     for line in content.splitlines():
         line = line.strip()
-        if not line:
+        if not line or line.startswith("WEBVTT") or re.match(r"^(Kind|Language|NOTE):", line):
             continue
-        if re.match(r'^\d+$', line):              # sequence number
+        if re.match(r"^\d+$", line):  # SRT sequence number
             continue
-        if re.match(r'\d{2}:\d{2}:\d{2}', line):  # timestamp line
+        # Timestamp line: "00:01:23.456 --> 00:01:25.789"
+        ts_match = re.match(r"(\d{1,2}:\d{2}:\d{2})[.,]\d+\s*-->", line)
+        if ts_match:
+            if current_lines:
+                cues.append((current_ts, current_lines))
+                current_lines = []
+            current_ts = _parse_ts_seconds(ts_match.group(1))
             continue
-        if line.startswith('WEBVTT'):              # VTT header
-            continue
-        if re.match(r'^(Kind|Language|NOTE):', line):  # VTT metadata
-            continue
-        line = re.sub(r'<[^>]+>', '', line)        # strip HTML-like tags
-        line = html.unescape(line)                 # decode &gt; &amp; etc.
-        if line and line not in seen:
-            seen.add(line)
-            lines.append(line)
-    return '\n'.join(lines)
+        # Text line
+        line = re.sub(r"<[^>]+>", "", line)
+        line = html.unescape(line)
+        if line:
+            current_lines.append(line)
+    if current_lines:
+        cues.append((current_ts, current_lines))
+
+    if not cues:
+        return ""
+
+    # Deduplicate and merge into paragraphs every ~30 seconds
+    PARA_INTERVAL = 30
+    seen: set[str] = set()
+    paragraphs: list[str] = []
+    para_ts = cues[0][0]
+    para_words: list[str] = []
+
+    for ts, lines in cues:
+        # Start a new paragraph if enough time has passed
+        if ts - para_ts >= PARA_INTERVAL and para_words:
+            paragraphs.append(f"{_fmt_ts(para_ts)} {' '.join(para_words)}")
+            para_words = []
+            para_ts = ts
+
+        for line in lines:
+            if line not in seen:
+                seen.add(line)
+                para_words.append(line)
+
+    if para_words:
+        paragraphs.append(f"{_fmt_ts(para_ts)} {' '.join(para_words)}")
+
+    return "\n\n".join(paragraphs)
 
 
 def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
