@@ -386,6 +386,12 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
 
   const unenrichedCount = playlists.reduce((s, p) => s + p.vids.filter(v => !v.enriched).length, 0);
 
+  function buildWorkflowUrl(workflowFile, transcriptIds) {
+    const base = `https://github.com/jsneij/projectyoutube/actions/workflows/${workflowFile}`;
+    if (!transcriptIds) return base;
+    return `${base}?${encodeURIComponent('inputs[transcript_ids]')}=${encodeURIComponent(transcriptIds)}`;
+  }
+
   function updateTopbarEnrich() {
     const tCount = transcriptSelCount();
     const total = unenrichedCount + tCount;
@@ -402,26 +408,19 @@ mark { background: var(--accent); color: #fff; border-radius: 2px; padding: 0 2p
     if (tCount > 0) parts.push(`${tCount} transcripts`);
     countEl.innerHTML = parts.join(' · ');
     enrichBtn.style.display = 'inline';
+    const ids = tCount > 0 ? Object.keys(transcriptSel).join(',') : '';
+    const workflowFile = total <= 10 ? 'enrich_missing_10.yml' : 'enrich_missing.yml';
+    enrichBtn.href = buildWorkflowUrl(workflowFile, ids);
     if (total <= 10) {
-      enrichBtn.href = 'https://github.com/jsneij/projectyoutube/actions/workflows/enrich_missing_10.yml';
       enrichBtn.style.background = 'var(--accent-dim)';
       enrichBtn.style.color = 'var(--accent)';
       enrichBtn.style.borderColor = 'var(--accent)';
     } else {
-      enrichBtn.href = 'https://github.com/jsneij/projectyoutube/actions/workflows/enrich_missing.yml';
       enrichBtn.style.background = 'var(--bg3)';
       enrichBtn.style.color = 'var(--fg3)';
       enrichBtn.style.borderColor = 'var(--border2)';
     }
-    // When transcripts are selected, clicking enrich copies IDs to clipboard
-    enrichBtn.onclick = tCount > 0 ? (e => {
-      const ids = Object.keys(transcriptSel).join(',');
-      navigator.clipboard.writeText(ids).then(() => {
-        const orig = enrichBtn.textContent;
-        enrichBtn.textContent = 'copied!';
-        setTimeout(() => { enrichBtn.textContent = orig; }, 1500);
-      });
-    }) : null;
+    enrichBtn.onclick = null;
   }
   updateTopbarEnrich();
 
