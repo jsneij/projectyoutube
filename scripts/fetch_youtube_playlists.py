@@ -1123,18 +1123,22 @@ def _transcript_filename(video_id: str, title: str, channel: str = "") -> str:
     return f"{video_id} {ti}.txt"
 
 
-def _srt_to_text(srt_content: str) -> str:
-    """Convert SRT subtitle content to plain text (strip timestamps, tags)."""
+def _srt_to_text(content: str) -> str:
+    """Convert SRT/VTT subtitle content to plain text (strip timestamps, tags)."""
     lines = []
-    for line in srt_content.splitlines():
+    for line in content.splitlines():
         line = line.strip()
         if not line:
             continue
-        if re.match(r'^\d+$', line):          # sequence number
+        if re.match(r'^\d+$', line):              # sequence number
             continue
         if re.match(r'\d{2}:\d{2}:\d{2}', line):  # timestamp line
             continue
-        line = re.sub(r'<[^>]+>', '', line)   # strip HTML-like tags
+        if line.startswith('WEBVTT'):              # VTT header
+            continue
+        if re.match(r'^(Kind|Language):', line):   # VTT metadata
+            continue
+        line = re.sub(r'<[^>]+>', '', line)        # strip HTML-like tags
         if line:
             lines.append(line)
     return '\n'.join(lines)
@@ -1199,26 +1203,28 @@ def run_transcript_fetch(data: dict, video_ids: list[str]) -> None:
             print(f"    {vid_id}: error — {exc}")
             continue
 
-        # Find the downloaded .srt file (may have language suffix)
-        srt_files = list(TRANSCRIPTS_DIR.glob(f"{vid_id}*.srt"))
-        if not srt_files:
+        # Find downloaded subtitle file (.srt or .vtt)
+        sub_files = (list(TRANSCRIPTS_DIR.glob(f"{vid_id}*.srt"))
+                     or list(TRANSCRIPTS_DIR.glob(f"{vid_id}*.vtt")))
+        if not sub_files:
             print(f"    {vid_id}: no subtitles found")
             continue
 
-        srt_file = srt_files[0]
-        srt_content = srt_file.read_text(encoding="utf-8", errors="replace")
-        plain_text = _srt_to_text(srt_content)
+        sub_file = sub_files[0]
+        sub_content = sub_file.read_text(encoding="utf-8", errors="replace")
+        plain_text = _srt_to_text(sub_content)
+
+        # Clean up ALL intermediate subtitle files regardless of outcome
+        for f in TRANSCRIPTS_DIR.glob(f"{vid_id}*.srt"):
+            f.unlink(missing_ok=True)
+        for f in TRANSCRIPTS_DIR.glob(f"{vid_id}*.vtt"):
+            f.unlink(missing_ok=True)
 
         if not plain_text.strip():
             print(f"    {vid_id}: empty subtitle — skipping")
-            srt_file.unlink(missing_ok=True)
             continue
 
         txt_path.write_text(plain_text, encoding="utf-8")
-        srt_file.unlink(missing_ok=True)
-        # Clean up any other intermediate subtitle files
-        for f in TRANSCRIPTS_DIR.glob(f"{vid_id}*.vtt"):
-            f.unlink(missing_ok=True)
 
         video["transcript"] = True
         video["transcript_file"] = fname
