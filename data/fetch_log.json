@@ -1,11 +1,11 @@
 {
-  "fetched_at": "2026-04-03T13:09:33.055117+00:00",
+  "fetched_at": "2026-04-03T21:26:25.684311+00:00",
   "total_playlists": 100,
-  "total_videos": 2944,
+  "total_videos": 2947,
   "playlists": {
     "PLiWBEZWrNsNh7vfkaqBwELMslaLWkbxx8": {
       "title": "Lenny's Podcast",
-      "video_count": 8,
+      "video_count": 9,
       "video_ids": [
         "wc8FBhQtdsA",
         "DIa0MYJzM5I",
@@ -14,38 +14,13 @@
         "RP4vJeIb7WU",
         "3UyitfSbY6c",
         "87Pm0SGTtN8",
-        "6qAB6aUMIeA"
-      ]
-    },
-    "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1": {
-      "title": "AI Claude",
-      "video_count": 20,
-      "video_ids": [
-        "CEvIs9y1uog",
-        "ntDIxaeo3Wg",
-        "QoQBzR1NIqI",
-        "bjdBVZa66oU",
-        "Ii99RU3mOJM",
-        "ZlDnsf_DOzg",
-        "Y09u_S3w2c8",
-        "F4zSxfBe5R0",
-        "6-D3fg3JUL4",
-        "wQ0duoTeAAU",
-        "4u94juYwLLM",
-        "Ko7_tC1fMMM",
-        "4CiCwvAA5FI",
-        "91AJ0cpgLlQ",
-        "uULvhQrKB_c",
-        "-9uojnGzcJo",
-        "-ttbXFWb8mg",
-        "63Kr3HFECHM",
-        "nVnxG10D5W0",
-        "dYG8JxtSgmM"
+        "6qAB6aUMIeA",
+        "c_w0LaFahxk"
       ]
     },
     "PLiWBEZWrNsNhp3T5tIRURbyXn4a1G6HK1": {
       "title": "AI",
-      "video_count": 67,
+      "video_count": 69,
       "video_ids": [
         "3cT1PQJXVag",
         "NiQ_9xwS4v8",
@@ -113,7 +88,35 @@
         "ZeWfksNXlbU",
         "nVnxG10D5W0",
         "EdZWPB1fIJc",
-        "ZlDnsf_DOzg"
+        "ZlDnsf_DOzg",
+        "TrMZL55Nzl0",
+        "ivVPJhYM8Ng"
+      ]
+    },
+    "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1": {
+      "title": "AI Claude",
+      "video_count": 20,
+      "video_ids": [
+        "CEvIs9y1uog",
+        "ntDIxaeo3Wg",
+        "QoQBzR1NIqI",
+        "bjdBVZa66oU",
+        "Ii99RU3mOJM",
+        "ZlDnsf_DOzg",
+        "Y09u_S3w2c8",
+        "F4zSxfBe5R0",
+        "6-D3fg3JUL4",
+        "wQ0duoTeAAU",
+        "4u94juYwLLM",
+        "Ko7_tC1fMMM",
+        "4CiCwvAA5FI",
+        "91AJ0cpgLlQ",
+        "uULvhQrKB_c",
+        "-9uojnGzcJo",
+        "-ttbXFWb8mg",
+        "63Kr3HFECHM",
+        "nVnxG10D5W0",
+        "dYG8JxtSgmM"
       ]
     },
     "LL": {
