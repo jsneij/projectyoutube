@@ -1,35 +1,48 @@
 {
-  "run_at": "2026-04-04T17:22:32.163389+00:00",
+  "run_at": "2026-04-05T06:47:30.894059+00:00",
   "is_first_run": false,
   "enrich_mode": false,
   "playlists_new": [],
   "playlists_deleted": [],
   "playlists_updated": [
     {
+      "playlist_id": "WL",
+      "title": "Watch later",
+      "videos_added": [
+        "_9OdGDjFrCw"
+      ],
+      "videos_removed": []
+    },
+    {
       "playlist_id": "PLiWBEZWrNsNhp3T5tIRURbyXn4a1G6HK1",
       "title": "AI",
       "videos_added": [
-        "Q8Fkpi18QXU"
+        "KWrsLqnB6vA",
+        "aR20FWCCjAs"
       ],
       "videos_removed": []
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1",
+      "title": "AI Claude",
+      "videos_added": [
+        "OSZdFnQmgRw"
+      ],
+      "videos_removed": []
+    },
+    {
+      "playlist_id": "LL",
+      "title": "Liked videos",
+      "videos_added": [],
+      "videos_removed": [
+        "Kle5WgNFVgM"
+      ]
     }
   ],
   "playlists_unchanged": [
     {
-      "playlist_id": "LL",
-      "title": "Liked videos"
-    },
-    {
-      "playlist_id": "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1",
-      "title": "AI Claude"
-    },
-    {
       "playlist_id": "PLiWBEZWrNsNh7vfkaqBwELMslaLWkbxx8",
       "title": "Lenny's Podcast"
-    },
-    {
-      "playlist_id": "WL",
-      "title": "Watch later"
     },
     {
       "playlist_id": "PLiWBEZWrNsNgL17W3ifp7yltUA3Q_qiDo",
@@ -413,6 +426,6 @@
     }
   ],
   "total_playlists": 100,
-  "total_videos": 2952,
-  "duration_seconds": 359.0
+  "total_videos": 2955,
+  "duration_seconds": 425.4
 }
