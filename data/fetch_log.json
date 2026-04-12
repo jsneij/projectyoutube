@@ -1,8 +1,22 @@
 {
-  "fetched_at": "2026-04-11T06:45:25.699506+00:00",
+  "fetched_at": "2026-04-12T07:54:01.990687+00:00",
   "total_playlists": 100,
-  "total_videos": 2959,
+  "total_videos": 2960,
   "playlists": {
+    "PLiWBEZWrNsNj8dQwp2HKw0tZ_RynjFHsq": {
+      "title": "Philosophy",
+      "video_count": 8,
+      "video_ids": [
+        "LXqPlYWJSII",
+        "-qVAxuHRKOw",
+        "0LlF99kNeQE",
+        "lI9-YgSzsEQ",
+        "f28AAkLm9ZA",
+        "e3nIEHvutFI",
+        "4YSXNotY8QU",
+        "CS1Ng3CcAOs"
+      ]
+    },
     "WL": {
       "title": "Watch later",
       "video_count": 506,
@@ -1291,19 +1305,6 @@
         "3Y8n-OeAcec",
         "wW1jfIBFLp8",
         "Uaxhc7p6xU0"
-      ]
-    },
-    "PLiWBEZWrNsNj8dQwp2HKw0tZ_RynjFHsq": {
-      "title": "Philosophy",
-      "video_count": 7,
-      "video_ids": [
-        "LXqPlYWJSII",
-        "-qVAxuHRKOw",
-        "0LlF99kNeQE",
-        "lI9-YgSzsEQ",
-        "f28AAkLm9ZA",
-        "e3nIEHvutFI",
-        "4YSXNotY8QU"
       ]
     },
     "PLiWBEZWrNsNiynofCprMQEdB1Fa_jzMwE": {

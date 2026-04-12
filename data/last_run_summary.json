@@ -1,15 +1,15 @@
 {
-  "run_at": "2026-04-11T06:41:28.355386+00:00",
+  "run_at": "2026-04-12T07:50:19.305138+00:00",
   "is_first_run": false,
   "enrich_mode": false,
   "playlists_new": [],
   "playlists_deleted": [],
   "playlists_updated": [
     {
-      "playlist_id": "PLBS8yOLcZ_edW-0EcbD3fHnGK2kaFKJdI",
-      "title": "Arkham Horror: The Card Game",
+      "playlist_id": "PLiWBEZWrNsNj8dQwp2HKw0tZ_RynjFHsq",
+      "title": "Philosophy",
       "videos_added": [
-        "as7BOgRzv6A"
+        "CS1Ng3CcAOs"
       ],
       "videos_removed": []
     }
@@ -82,10 +82,6 @@
     {
       "playlist_id": "PLiWBEZWrNsNjYkMe9eaaMmYSSzb6WJVEx",
       "title": "Camping"
-    },
-    {
-      "playlist_id": "PLiWBEZWrNsNj8dQwp2HKw0tZ_RynjFHsq",
-      "title": "Philosophy"
     },
     {
       "playlist_id": "PLiWBEZWrNsNiynofCprMQEdB1Fa_jzMwE",
@@ -242,6 +238,10 @@
     {
       "playlist_id": "PLXmf8-Jo8F-vUA9OpO6x_lHvQsLl3LI5t",
       "title": "How To Win | ARKHAM HORROR: THE CARD GAME"
+    },
+    {
+      "playlist_id": "PLBS8yOLcZ_edW-0EcbD3fHnGK2kaFKJdI",
+      "title": "Arkham Horror: The Card Game"
     },
     {
       "playlist_id": "PLDZBtgxhRpkylUVA3p8LsdyACtWHgAlfY",
@@ -413,6 +413,6 @@
     }
   ],
   "total_playlists": 100,
-  "total_videos": 2959,
-  "duration_seconds": 237.3
+  "total_videos": 2960,
+  "duration_seconds": 222.7
 }
