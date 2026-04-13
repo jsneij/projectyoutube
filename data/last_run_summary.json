@@ -1,23 +1,18 @@
 {
-  "run_at": "2026-04-13T08:50:22.127283+00:00",
+  "run_at": "2026-04-13T09:21:15.153346+00:00",
   "is_first_run": false,
   "enrich_mode": false,
   "playlists_new": [],
   "playlists_deleted": [],
-  "playlists_updated": [
-    {
-      "playlist_id": "PLiWBEZWrNsNh7vfkaqBwELMslaLWkbxx8",
-      "title": "Lenny's Podcast",
-      "videos_added": [
-        "xCd9ykretlg"
-      ],
-      "videos_removed": []
-    }
-  ],
+  "playlists_updated": [],
   "playlists_unchanged": [
     {
       "playlist_id": "PLiWBEZWrNsNgXzg2Wy6TwwBtBeInIS4qx",
       "title": "Motos"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNh7vfkaqBwELMslaLWkbxx8",
+      "title": "Lenny's Podcast"
     },
     {
       "playlist_id": "PLiWBEZWrNsNj8dQwp2HKw0tZ_RynjFHsq",
@@ -414,5 +409,5 @@
   ],
   "total_playlists": 100,
   "total_videos": 2961,
-  "duration_seconds": 229.4
+  "duration_seconds": 221.0
 }
