@@ -1,20 +1,28 @@
 {
-  "run_at": "2026-04-12T07:50:19.305138+00:00",
+  "run_at": "2026-04-13T08:50:22.127283+00:00",
   "is_first_run": false,
   "enrich_mode": false,
   "playlists_new": [],
   "playlists_deleted": [],
   "playlists_updated": [
     {
-      "playlist_id": "PLiWBEZWrNsNj8dQwp2HKw0tZ_RynjFHsq",
-      "title": "Philosophy",
+      "playlist_id": "PLiWBEZWrNsNh7vfkaqBwELMslaLWkbxx8",
+      "title": "Lenny's Podcast",
       "videos_added": [
-        "CS1Ng3CcAOs"
+        "xCd9ykretlg"
       ],
       "videos_removed": []
     }
   ],
   "playlists_unchanged": [
+    {
+      "playlist_id": "PLiWBEZWrNsNgXzg2Wy6TwwBtBeInIS4qx",
+      "title": "Motos"
+    },
+    {
+      "playlist_id": "PLiWBEZWrNsNj8dQwp2HKw0tZ_RynjFHsq",
+      "title": "Philosophy"
+    },
     {
       "playlist_id": "WL",
       "title": "Watch later"
@@ -30,10 +38,6 @@
     {
       "playlist_id": "PLiWBEZWrNsNhx-pd0Pa5MmHQo_i3yFek1",
       "title": "AI Claude"
-    },
-    {
-      "playlist_id": "PLiWBEZWrNsNh7vfkaqBwELMslaLWkbxx8",
-      "title": "Lenny's Podcast"
     },
     {
       "playlist_id": "PLiWBEZWrNsNgL17W3ifp7yltUA3Q_qiDo",
@@ -94,10 +98,6 @@
     {
       "playlist_id": "PLiWBEZWrNsNjw7Tz-2jx7ztSIpmpftw5z",
       "title": "Arab Music"
-    },
-    {
-      "playlist_id": "PLiWBEZWrNsNgXzg2Wy6TwwBtBeInIS4qx",
-      "title": "Motos"
     },
     {
       "playlist_id": "PLiWBEZWrNsNg7jboh09RSPQUBT7hhRBYk",
@@ -413,6 +413,6 @@
     }
   ],
   "total_playlists": 100,
-  "total_videos": 2960,
-  "duration_seconds": 222.7
+  "total_videos": 2961,
+  "duration_seconds": 229.4
 }
