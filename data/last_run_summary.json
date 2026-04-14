@@ -1,5 +1,5 @@
 {
-  "run_at": "2026-04-13T09:21:15.153346+00:00",
+  "run_at": "2026-04-14T08:16:48.925608+00:00",
   "is_first_run": false,
   "enrich_mode": false,
   "playlists_new": [],
@@ -409,5 +409,5 @@
   ],
   "total_playlists": 100,
   "total_videos": 2961,
-  "duration_seconds": 221.0
+  "duration_seconds": 210.2
 }
