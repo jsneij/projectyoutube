@@ -1,5 +1,5 @@
 {
-  "run_at": "2026-04-15T08:57:58.776138+00:00",
+  "run_at": "2026-04-16T08:58:59.200990+00:00",
   "is_first_run": false,
   "enrich_mode": false,
   "playlists_new": [],
@@ -9,20 +9,17 @@
       "playlist_id": "WL",
       "title": "Watch later",
       "videos_added": [
-        "22eh9bHVeTc"
-      ],
-      "videos_removed": []
-    },
-    {
-      "playlist_id": "LL",
-      "title": "Liked videos",
-      "videos_added": [
-        "92Yboama7AM"
+        "-d7oR0J9usQ",
+        "xJ9q7XoQ8wo"
       ],
       "videos_removed": []
     }
   ],
   "playlists_unchanged": [
+    {
+      "playlist_id": "LL",
+      "title": "Liked videos"
+    },
     {
       "playlist_id": "PLiWBEZWrNsNgXzg2Wy6TwwBtBeInIS4qx",
       "title": "Motos"
@@ -417,6 +414,6 @@
     }
   ],
   "total_playlists": 100,
-  "total_videos": 2963,
-  "duration_seconds": 230.0
+  "total_videos": 2965,
+  "duration_seconds": 257.9
 }
