@@ -1,21 +1,15 @@
 {
-  "run_at": "2026-04-16T08:58:59.200990+00:00",
+  "run_at": "2026-04-17T05:32:58.247664+00:00",
   "is_first_run": false,
   "enrich_mode": false,
   "playlists_new": [],
   "playlists_deleted": [],
-  "playlists_updated": [
+  "playlists_updated": [],
+  "playlists_unchanged": [
     {
       "playlist_id": "WL",
-      "title": "Watch later",
-      "videos_added": [
-        "-d7oR0J9usQ",
-        "xJ9q7XoQ8wo"
-      ],
-      "videos_removed": []
-    }
-  ],
-  "playlists_unchanged": [
+      "title": "Watch later"
+    },
     {
       "playlist_id": "LL",
       "title": "Liked videos"
@@ -415,5 +409,5 @@
   ],
   "total_playlists": 100,
   "total_videos": 2965,
-  "duration_seconds": 257.9
+  "duration_seconds": 235.6
 }
